@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { isValidTimeZone } from './date';
 import packageJson from '../../package.json' with { type: 'json' };
 
 
@@ -19,6 +20,10 @@ function isReasonableJwtSecret(value: string): boolean {
 
 const EnvSchema = v.object({
   APP_ENV: v.picklist(['development', 'production']),
+  APP_TIMEZONE: v.optional(
+    v.pipe(v.string(), v.check(isValidTimeZone, 'debe ser una zona horaria válida')),
+    'America/La_Paz',
+  ),
   REDIS_URL: v.pipe(v.string(), v.nonEmpty()),
   JWT_SECRET: v.pipe(
     v.string(),
@@ -57,6 +62,9 @@ function readProcessEnv(): Record<string, string | undefined> {
 }
 
 function loadEnv() {
+  if (typeof Temporal === 'undefined') {
+    throw new Error('Maya API requiere Bun 1.4.1 con Temporal nativo');
+  }
   const result = v.safeParse(EnvSchema, readProcessEnv());
   if (!result.success) {
     const details = result.issues

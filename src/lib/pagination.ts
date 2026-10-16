@@ -76,10 +76,10 @@ export function beforeDateIdCursor(
   columns: DateIdColumns,
   cursor: DateIdCursor,
 ): SQL {
-  return or(
-    lt(columns.localDate, cursor.localDate),
-    and(eq(columns.localDate, cursor.localDate), lt(columns.id, cursor.id)),
-  )!;
+  return beforeStringIdCursor(
+    { value: columns.localDate, id: columns.id },
+    { value: cursor.localDate, id: cursor.id },
+  );
 }
 
 type StringIdCursor = { value: string; id: number };

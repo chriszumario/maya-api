@@ -1,4 +1,4 @@
-
+import { timingSafeEqual } from 'node:crypto';
 import { env } from './env';
 
 const encoder = new TextEncoder();
@@ -46,12 +46,9 @@ export function deriveRefreshIdempotencyKey(rawToken: string): string {
 }
 
 export function constantTimeEqual(first: string, second: string): boolean {
-  const length = Math.max(first.length, second.length);
-  let difference = first.length ^ second.length;
-  for (let index = 0; index < length; index++) {
-    difference |= (first.charCodeAt(index) || 0) ^ (second.charCodeAt(index) || 0);
-  }
-  return difference === 0;
+  const firstBytes = encoder.encode(first);
+  const secondBytes = encoder.encode(second);
+  return firstBytes.length === secondBytes.length && timingSafeEqual(firstBytes, secondBytes);
 }
 
 export async function encryptRefreshRotationResult(
@@ -119,9 +116,9 @@ export async function verifyPassword(password: string, passwordHash: string): Pr
   return Bun.password.verify(password, passwordHash);
 }
 
-let dummyPasswordHash: string | null = null;
+let dummyPasswordHash: Promise<string> | undefined;
 
 export async function dummyPasswordVerify(password: string): Promise<void> {
-  dummyPasswordHash ??= await Bun.password.hash('__dummy_timing_probe__', PASSWORD_OPTS);
-  await Bun.password.verify(password, dummyPasswordHash);
+  dummyPasswordHash ??= Bun.password.hash('__dummy_timing_probe__', PASSWORD_OPTS);
+  await Bun.password.verify(password, await dummyPasswordHash);
 }

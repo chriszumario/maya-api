@@ -9,7 +9,7 @@ El contrato completo de solicitudes, respuestas y tipos está en la
 
 ## Requisitos
 
-- Bun `1.4.0`
+- Bun `1.4.1` con `Temporal` nativo (sin polyfill)
 - Una base de datos Turso
 - Un servidor Redis o Valkey
 
@@ -32,6 +32,7 @@ Completa en `.env` las variables requeridas:
 | `TURSO_AUTH_TOKEN` | Token de acceso a Turso |
 
 Opcionales: `PORT` (4000 por defecto), `MAX_REQUEST_BODY_BYTES` (1 MiB),
+`APP_TIMEZONE` (`America/La_Paz`, zona predeterminada del seed; las fechas de cada usuario usan su propia zona),
 `ALLOWED_ORIGINS` y `GROQ_API_KEY`
 (necesaria para las rutas `/ai/*`).
 
@@ -74,4 +75,4 @@ bun run verify
 bun run start
 ```
 
-`verify` ejecuta typecheck, tests y build. El build usa el plugin AOT de Elysia y genera la salida en `dist/`.
+`verify` ejecuta typecheck, lint, tests, validación de migraciones, build y una prueba de arranque del bundle. El build usa el plugin AOT de Elysia y genera la salida en `dist/`.

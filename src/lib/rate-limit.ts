@@ -3,7 +3,7 @@ import { Elysia } from 'elysia'
 import { checkRateLimit } from './rate-limit.cache'
 import { ip } from './ip'
 import { failure } from './api'
-import { logger } from './logger'
+import { errorDetails, logger } from './logger'
 import { env } from './env'
 
 
@@ -21,25 +21,20 @@ export const rateLimit = new Elysia({ name: 'rate-limit' })
 			ip: true,
 			async beforeHandle(context) {
 				const { set, status } = context
-				const { ip, userId } = context as typeof context & { ip: string; userId: number }
+				const { ip, userId } = context as typeof context & { ip: string; userId?: number }
 
 				if (env.APP_ENV === 'development') return
+				if (identifier === 'user' && !Number.isSafeInteger(userId)) {
+					return status(401, failure('UNAUTHORIZED', 'No autorizado'))
+				}
 
 				let result
 				try {
 					const identity = identifier === 'user' ? `user:${userId}` : `ip:${ip}`
 					result = await checkRateLimit(`${namespace}:${identity}`, max, windowMs)
 				} catch (error) {
-					const redisError = error as {
-						code?: string
-						cause?: unknown
-					}
 					logger.error('No se pudo consultar el rate limit en Redis', {
-						redisCode: redisError.code ?? 'UNKNOWN',
-						redisMessage: error instanceof Error ? error.message : String(error),
-						redisCause: redisError.cause instanceof Error
-							? redisError.cause.message
-							: String(redisError.cause ?? ''),
+						...errorDetails(error),
 						namespace,
 					})
 					return status(

@@ -1,5 +1,5 @@
 import { and, eq, sql } from 'drizzle-orm';
-import { db } from '@/db/drizzle';
+import { db, type DatabaseExecutor } from '@/db/drizzle';
 import { dailyUserMetrics, goals, taskLogs, tasks } from '@/db/schema';
 import {
   ApiError,
@@ -8,8 +8,6 @@ import {
   localDateToRecurrenceMask,
 } from '@/lib';
 
-type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
-type Executor = typeof db | Transaction;
 type LogMetrics = { status: 'in_progress' | 'completed'; durationMinutes: number };
 
 const METRIC_COLUMNS = {
@@ -22,7 +20,7 @@ const METRIC_COLUMNS = {
 } as const;
 
 export abstract class DailyMetricsService {
-  static async rebuild(userId: number, localDate: string, executor: Executor = db) {
+  static async rebuild(userId: number, localDate: string, executor: DatabaseExecutor = db) {
     const { dayOfMonth, dayOfWeek } = getCalendarParts(localDate);
     const numericDate = localDateToRecurrenceMask(localDate);
     const weeklyBit = getWeeklyRecurrenceBit(dayOfWeek);
@@ -71,7 +69,7 @@ export abstract class DailyMetricsService {
     localDate: string,
     previous: LogMetrics,
     next: LogMetrics,
-    executor: Executor,
+    executor: DatabaseExecutor,
   ) {
     const inProgressDelta = Number(next.status === 'in_progress') - Number(previous.status === 'in_progress');
     const completedDelta = Number(next.status === 'completed') - Number(previous.status === 'completed');

@@ -1,4 +1,4 @@
-import { db } from '@/db/drizzle';
+import { db, type DatabaseExecutor } from '@/db/drizzle';
 import { ApiError } from './api';
 
 export async function requireOwnedGoal(userId: number, goalId: number) {
@@ -12,8 +12,8 @@ export async function requireOwnedGoal(userId: number, goalId: number) {
   return goal;
 }
 
-export async function requireOwnedTask(userId: number, taskId: number) {
-  const task = await db.query.tasks.findFirst({
+export async function requireOwnedTask(userId: number, taskId: number, executor: DatabaseExecutor = db) {
+  const task = await executor.query.tasks.findFirst({
     where: { id: taskId, goal: { userId } },
     columns: {
       id: true,

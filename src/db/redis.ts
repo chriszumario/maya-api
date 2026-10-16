@@ -1,6 +1,7 @@
 import { RedisClient } from 'bun'
 
 import { env } from '@/lib/env'
+import { errorDetails, logger } from '@/lib/logger'
 
 export const redis = new RedisClient(env.REDIS_URL, {
 	connectionTimeout: 10_000,
@@ -20,9 +21,5 @@ export async function ensureRedisConnection(): Promise<void> {
 }
 
 redis.onclose = (error) => {
-	const redisError = error as { code?: string; message?: string } | undefined
-	console.error('[redis] connection closed', {
-		code: redisError?.code ?? 'UNKNOWN',
-		message: redisError?.message ?? 'Unknown Redis connection error',
-	})
+	logger.error('Conexión Redis cerrada', errorDetails(error))
 }

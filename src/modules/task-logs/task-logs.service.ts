@@ -33,22 +33,7 @@ export abstract class TaskLogsService {
     const localDate = await getUserLocalDate(userId);
 
     const log = await db.transaction(async (tx) => {
-      const task = await tx.query.tasks.findFirst({
-        where: { id: data.taskId, goal: { userId } },
-        columns: {
-          id: true,
-          goalId: true,
-          title: true,
-          estimatedMinutes: true,
-          startTime: true,
-          frequency: true,
-          recurrenceMask: true,
-          isActive: true,
-          updatedAt: true,
-        },
-        with: { goal: { columns: { status: true } } },
-      });
-      if (!task) throw new ApiError(404, 'Tarea no encontrada', 'TASK_NOT_FOUND');
+      const task = await requireOwnedTask(userId, data.taskId, tx);
       this.validateTask(task, localDate);
 
       const [created] = await tx
@@ -123,6 +108,7 @@ export abstract class TaskLogsService {
   }
 
   static async update(userId: number, logId: number, data: UpdateTaskLogDTO) {
+    const today = await getUserLocalDate(userId);
     const log = await db.transaction(async (tx) => {
       const existing = await tx.query.taskLogs.findFirst({
         where: { id: logId, task: { goal: { userId } } },
@@ -150,13 +136,12 @@ export abstract class TaskLogsService {
         ))
         .returning();
       if (!updated) return undefined;
-      await DailyMetricsService.applyLogDelta(
-        userId,
-        existing.localDate,
-        existing,
-        next,
-        tx,
-      );
+      if (existing.localDate === today) {
+        // Today's snapshot may no longer include this task after a schedule or goal change.
+        await DailyMetricsService.rebuild(userId, today, tx);
+      } else {
+        await DailyMetricsService.applyLogDelta(userId, existing.localDate, existing, next, tx);
+      }
       return updated;
     });
 

@@ -14,8 +14,6 @@ export const users = sqliteTable("users", {
   updatedAt: text("updatedAt").notNull().default(sql`(CURRENT_TIMESTAMP)`).$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
 }, (table) => [
   uniqueIndex('users_email_unique').on(sql`lower(${table.email})`),
-  index('users_createdAt_idx').on(table.createdAt),
-  index('users_isActive_createdAt_idx').on(table.isActive, table.createdAt),
   index('users_createdAt_id_idx').on(table.createdAt, table.id),
   index('users_isActive_createdAt_id_idx').on(table.isActive, table.createdAt, table.id),
 ]);
@@ -75,8 +73,6 @@ export const goals = sqliteTable("goals", {
   check("goals_completed_endedAt_check", sql`${table.status} != 'completed' OR ${table.endedAt} IS NOT NULL`),
   check("goals_endedAt_status_check", sql`${table.endedAt} IS NULL OR ${table.status} IN ('completed', 'cancelled')`),
   check("goals_lifecycle_dates_check", sql`${table.startDate} IS NULL OR ${table.endedAt} IS NULL OR ${table.endedAt} >= ${table.startDate}`),
-  index("goals_userId_status_idx").on(table.userId, table.status),
-  index('goals_userId_createdAt_idx').on(table.userId, table.createdAt),
   index('goals_createdAt_userId_idx').on(table.createdAt, table.userId),
   index('goals_userId_createdAt_id_idx').on(table.userId, table.createdAt, table.id),
   index('goals_userId_status_endedAt_idx').on(table.userId, table.status, table.endedAt),
@@ -148,7 +144,6 @@ export const journalEntries = sqliteTable("journal_entries", {
 }, (table) => [
   check("journal_entries_mood_check", sql`${table.mood} IN ('excellent', 'good', 'neutral', 'bad', 'terrible')`),
   check("journal_entries_energyLevel_check", sql`${table.energyLevel} BETWEEN 1 AND 5`),
-  index("journal_entries_userId_date_idx").on(table.userId, table.localDate),
   index("journal_entries_createdAt_userId_idx").on(table.createdAt, table.userId),
   index("journal_entries_userId_date_id_idx").on(table.userId, table.localDate, table.id),
 ]);
@@ -182,7 +177,6 @@ export const nutritionEntries = sqliteTable("nutrition_entries", {
   check("nutrition_entries_mealType_check", sql`${table.mealType} IN ('breakfast', 'lunch', 'dinner', 'snack', 'drink')`),
   check("nutrition_entries_quantity_check", sql`${table.quantity} > 0 AND ${table.quantity} <= 1000000`),
   check("nutrition_entries_calories_check", sql`${table.calories} BETWEEN 0 AND 100000`),
-  index("nutrition_entries_userId_date_idx").on(table.userId, table.localDate),
   index("nutrition_entries_createdAt_userId_idx").on(table.createdAt, table.userId),
   index("nutrition_entries_userId_date_id_idx").on(table.userId, table.localDate, table.id),
 ]);

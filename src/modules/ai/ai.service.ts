@@ -1,7 +1,7 @@
 import Groq from 'groq-sdk';
 import * as v from 'valibot';
 import { ApiError, env } from '@/lib';
-import { logger } from '@/lib/logger';
+import { errorDetails, logger } from '@/lib/logger';
 import { AiModel } from './ai.model';
 
 const AI_MODEL = 'openai/gpt-oss-20b';
@@ -122,7 +122,7 @@ export abstract class AiService {
     } catch (error) {
       if (error instanceof ApiError) throw error;
 
-      logger.error('Error del proveedor de IA', { error });
+      logger.error('Error del proveedor de IA', errorDetails(error));
       throw new ApiError(502, 'Error conectando con el proveedor de IA.', 'AI_PROVIDER_ERROR');
     }
   }

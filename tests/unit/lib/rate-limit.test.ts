@@ -17,11 +17,14 @@ beforeEach(() => {
 });
 
 describe('checkRateLimit', () => {
+  test('rejects a malformed Redis result rather than allowing a request', async () => {
+    spyOn(redis, 'send').mockResolvedValue([1, -1]);
+    await expect(checkRateLimit('test', 10, 60_000)).rejects.toThrow('Invalid rate limit result');
+  });
+
   test('maps an atomic Redis result and does not expose the raw key', async () => {
-    const increment = spyOn(redis, 'incr').mockResolvedValue(1);
-    const expire = spyOn(redis, 'pexpire').mockResolvedValue(1);
-    spyOn(redis, 'pttl').mockResolvedValue(60_000);
-    spyOn(Date, 'now').mockReturnValue(1_000);
+    const evaluate = spyOn(redis, 'send').mockResolvedValue([1, 60_000]);
+    spyOn(Temporal.Now, 'instant').mockReturnValue(Temporal.Instant.fromEpochMilliseconds(1_000));
 
     await expect(checkRateLimit('auth:/login:ip:127.0.0.1', 2, 60_000)).resolves.toEqual({
       allowed: true,
@@ -30,17 +33,15 @@ describe('checkRateLimit', () => {
       resetAt: 61_000,
     });
 
-    const storageKey = increment.mock.calls[0]![0];
+    const storageKey = evaluate.mock.calls[0]![1][2]!;
     expect(storageKey).toMatch(/^maya:development:rate:[a-f0-9]{64}$/);
     expect(storageKey).not.toContain('127.0.0.1');
-    expect(expire).toHaveBeenCalledWith(storageKey, 60_000);
+    expect(evaluate).toHaveBeenCalledWith('EVAL', [expect.any(String), '1', storageKey, '60000']);
   });
 
   test('returns the retry interval when Redis rejects a request', async () => {
-    spyOn(redis, 'incr').mockResolvedValue(31);
-    const expire = spyOn(redis, 'pexpire');
-    spyOn(redis, 'pttl').mockResolvedValue(9_500);
-    spyOn(Date, 'now').mockReturnValue(61_000);
+    spyOn(redis, 'send').mockResolvedValue([31, 9_500]);
+    spyOn(Temporal.Now, 'instant').mockReturnValue(Temporal.Instant.fromEpochMilliseconds(61_000));
 
     await expect(checkRateLimit('ai:user:17', 30, 60_000)).resolves.toEqual({
       allowed: false,
@@ -48,7 +49,6 @@ describe('checkRateLimit', () => {
       retryAfterMs: 9_500,
       resetAt: 70_500,
     });
-    expect(expire).not.toHaveBeenCalled();
   });
 });
 
@@ -80,9 +80,8 @@ describe('ip macro', () => {
 describe('rateLimit macro', () => {
   test('returns 429 with rate-limit headers', async () => {
     env.APP_ENV = 'production';
-    spyOn(redis, 'incr').mockResolvedValue(3);
-    spyOn(redis, 'pttl').mockResolvedValue(9_500);
-    spyOn(Date, 'now').mockReturnValue(61_000);
+    spyOn(redis, 'send').mockResolvedValue([3, 9_500]);
+    spyOn(Temporal.Now, 'instant').mockReturnValue(Temporal.Instant.fromEpochMilliseconds(61_000));
     const app = new Elysia()
       .use(rateLimit)
       .get('/', {
@@ -111,7 +110,7 @@ describe('rateLimit macro', () => {
   test('returns 503 when Redis is unavailable', async () => {
     env.APP_ENV = 'production';
     const consoleError = spyOn(console, 'error').mockImplementation(() => undefined);
-    spyOn(redis, 'incr').mockRejectedValue(new Error('Redis unavailable'));
+    spyOn(redis, 'send').mockRejectedValue(new Error('Redis unavailable'));
     const app = new Elysia()
       .use(rateLimit)
       .get('/', {

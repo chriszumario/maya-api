@@ -7,7 +7,12 @@ import {
   authentication,
   rateLimit,
 } from '@/lib';
-
+const credentialRateLimit = {
+  max: 10,
+  windowMs: 15 * 60_000,
+  identifier: 'user' as const,
+  namespace: 'auth:credentials',
+};
 
 export const auth = new Elysia({
   prefix: '/auth',
@@ -93,6 +98,12 @@ export const auth = new Elysia({
   .post(
     '/logout',
     {
+      rateLimit: {
+        max: 30,
+        windowMs: 15 * 60_000,
+        identifier: 'ip',
+        namespace: 'auth:logout',
+      },
       body: AuthModel.logout,
       response: { 200: AuthModel.logoutResponse },
       detail: {
@@ -119,6 +130,7 @@ export const auth = new Elysia({
     '/profile',
     {
       isAuthenticated: true,
+      rateLimit: credentialRateLimit,
       body: AuthModel.profileUpdate,
       response: { 200: AuthModel.userResponse },
       detail: {
@@ -132,6 +144,7 @@ export const auth = new Elysia({
     '/password',
     {
       isAuthenticated: true,
+      rateLimit: credentialRateLimit,
       body: AuthModel.passwordUpdate,
       response: { 200: AuthModel.passwordResponse },
       detail: {

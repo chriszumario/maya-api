@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/sqlite-core';
-import { db } from '@/db/drizzle';
+import { db, type Transaction } from '@/db/drizzle';
 import { refreshTokenRotations, refreshTokens, users } from '@/db/schema';
 import {
   ApiError,
@@ -18,7 +18,6 @@ const HISTORY_RETENTION_DAYS = 30;
 const REPLAY_WINDOW_SECONDS = 10;
 const CONCURRENT_ROTATION_RETRIES = 40;
 
-type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type TokenPair = { accessToken: string; refreshToken: string };
 type SignAccessToken = (payload: { userId: number; tokenVersion: number }) => Promise<string>;
 
@@ -274,16 +273,11 @@ export abstract class RefreshTokenService {
       .update(refreshTokens)
       .set({ revokedAt: sql`CURRENT_TIMESTAMP` })
       .where(and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt)));
-    const tokens = await tx
+    const tokens = tx
       .select({ id: refreshTokens.id })
       .from(refreshTokens)
       .where(eq(refreshTokens.userId, userId));
-    if (tokens.length > 0) {
-      await tx.delete(refreshTokenRotations).where(inArray(
-        refreshTokenRotations.sourceTokenId,
-        tokens.map(({ id }) => id),
-      ));
-    }
+    await tx.delete(refreshTokenRotations).where(inArray(refreshTokenRotations.sourceTokenId, tokens));
   }
 
   static async getActiveSessions(
@@ -366,15 +360,10 @@ export abstract class RefreshTokenService {
   }
 
   private static async deleteFamilyRotations(familyId: string, tx: Transaction): Promise<void> {
-    const tokens = await tx
+    const tokens = tx
       .select({ id: refreshTokens.id })
       .from(refreshTokens)
       .where(eq(refreshTokens.familyId, familyId));
-    if (tokens.length > 0) {
-      await tx.delete(refreshTokenRotations).where(inArray(
-        refreshTokenRotations.sourceTokenId,
-        tokens.map(({ id }) => id),
-      ));
-    }
+    await tx.delete(refreshTokenRotations).where(inArray(refreshTokenRotations.sourceTokenId, tokens));
   }
 }

@@ -22,6 +22,8 @@ export function refreshTransaction(existing?: ExistingRefreshToken | ExistingRef
   const selected = () => ({
     limit: async () => rows,
     orderBy: async () => rows,
+    // Drizzle query builders are intentionally awaitable.
+    // oxlint-disable-next-line unicorn/no-thenable
     then: (resolve: (value: ExistingRefreshToken[]) => unknown) => Promise.resolve(rows).then(resolve),
   });
   const joins = {

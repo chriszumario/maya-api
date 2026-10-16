@@ -1,7 +1,6 @@
 import { Elysia } from 'elysia';
 import * as v from 'valibot';
 import { cors } from '@elysia/cors';
-import { Temporal } from 'temporal-polyfill';
 import { APP_VERSION, env, errorHandler } from '@/lib';
 import { admin } from '@/modules/admin';
 import { ai } from '@/modules/ai';

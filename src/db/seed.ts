@@ -1,6 +1,7 @@
 import { db } from './drizzle'
 import { users } from './schema'
-import { hashPassword } from '../lib'
+import { hashPassword } from '../lib/crypto'
+import { env } from '../lib/env'
 
 const ask = (question: string) => prompt(question)?.trim() ?? ''
 
@@ -32,7 +33,7 @@ const [user] = await db.insert(users).values({
 	name: email.split('@')[0]!.slice(0, 100),
 	isAdmin,
 	isActive: true,
-	timezone: 'America/La_Paz',
+	timezone: env.APP_TIMEZONE,
 }).returning({ id: users.id })
 
 console.log(`Usuario creado correctamente: ${email}`)

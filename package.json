@@ -1,9 +1,9 @@
 {
   "name": "maya-api",
   "version": "1.0.50",
-  "packageManager": "bun@1.4.0",
+  "packageManager": "bun@1.4.1",
   "engines": {
-    "bun": "1.4.0"
+    "bun": ">=1.4.1 <1.5.0"
   },
   "module": "src/index.ts",
   "type": "module",
@@ -15,8 +15,10 @@
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
     "test:db": "bun test tests/integration/db",
+    "test:build": "bun --preload ./tests/setup.ts tests/smoke-build.ts",
     "typecheck": "tsc --noEmit",
-    "verify": "bun run typecheck && bun test && bun run build",
+    "lint": "oxlint --deny-warnings src tests build.ts drizzle.config.ts server.js",
+    "verify": "bun run typecheck && bun run lint && bun test && bun run db:check && bun run build && bun run test:build",
     "db:generate": "drizzle-kit generate",
     "db:seed": "bun run src/db/seed.ts",
     "db:push": "drizzle-kit push",
@@ -27,18 +29,17 @@
   "dependencies": {
     "@elysia/cors": "2.0.0-beta.1",
     "@elysia/jwt": "2.0.0-beta.1",
-    "@logtape/elysia": "2.4.0-dev.881",
     "@logtape/logtape": "2.4.0-dev.881",
     "@tursodatabase/serverless": "^1.4.0",
-    "drizzle-orm": "^1.0.0-rc.5",
-    "elysia": "2.0.0-beta.14",
+    "drizzle-orm": "1.0.0-rc.5-ab785fc",
+    "elysia": "2.0.0-beta.29",
     "groq-sdk": "^1.5.0",
-    "temporal-polyfill": "^1.0.4",
     "valibot": "^1.4.2"
   },
   "devDependencies": {
-    "@types/bun": "^1.4.0",
-    "drizzle-kit": "^1.0.0-rc.5",
+    "@types/bun": "^1.4.2",
+    "drizzle-kit": "1.0.0-rc.5-ab785fc",
+    "oxlint": "1.83.0",
     "typescript": "^7.0.2"
   }
 }

@@ -6,11 +6,37 @@ import { AuthService } from '@/modules/auth/auth.service';
 import { RefreshTokenService } from '@/modules/auth/refresh-token.service';
 import { deriveRefreshIdempotencyKey } from '@/lib/crypto';
 import { ApiError } from '@/lib/api';
+import { jwt } from '@elysia/jwt';
+import { Elysia } from 'elysia';
+import { env } from '@/lib/env';
 import { bearer, issueAccessToken, jsonRequest } from '../../helpers/http';
 
 afterEach(() => mock.restore());
 
 describe('HTTP authentication and authorization', () => {
+  test.serial('rejects signed tokens with missing expiration or invalid identity claims before querying users', async () => {
+    const lookup = spyOn(db.query.users, 'findFirst');
+    for (const claims of [
+      { userId: 17, tokenVersion: 0 },
+      { userId: 0, tokenVersion: 0, exp: '30m' },
+      { userId: 17, tokenVersion: -1, exp: '30m' },
+      { userId: Number.MAX_SAFE_INTEGER + 1, tokenVersion: 0, exp: '30m' },
+      { userId: 17, tokenVersion: 0, exp: 1 },
+    ]) {
+      const signer = new Elysia().use(jwt({ secret: env.JWT_SECRET }))
+        .get('/', ({ jwt }) => jwt.sign(claims));
+      const token = await (await signer.handle(new Request('http://localhost/'))).text();
+      const response = await app.handle(new Request('http://localhost/auth/me', {
+        headers: bearer(token),
+      }));
+      expect(response.status).toBe(401);
+      expect(await response.json()).toEqual({
+        error: { code: 'INVALID_TOKEN', message: 'Token inválido o expirado' },
+      });
+    }
+    expect(lookup).not.toHaveBeenCalled();
+  });
+
   test.serial('normalizes login input and returns an access token', async () => {
     const login = spyOn(AuthService, 'login').mockResolvedValue({
       user: {

@@ -1,6 +1,6 @@
-import { Elysia, HTTPError, NotFound, ValidationError } from 'elysia'
+import { Elysia, HTTPError, NotFound, ParseError, ValidationError } from 'elysia'
 import { DrizzleQueryError } from 'drizzle-orm'
-import { logger } from './logger'
+import { errorDetails, logger } from './logger'
 
 export const failure = (code: string, message: string) => ({
   error: { code, message },
@@ -48,7 +48,14 @@ export const errorHandler = new Elysia({ name: 'error-handler' })
   .error(NotFound, ({ status }) =>
     status(404, failure('ROUTE_NOT_FOUND', 'Ruta no encontrada'))
   )
-  .error(({ status }) => {
+  .error(ParseError, ({ status }) =>
+    status(400, failure('PARSE_ERROR', 'El cuerpo de la solicitud no es válido'))
+  )
+  .error(({ error, status, set }) => {
+    logger.error('Error inesperado al procesar la solicitud', {
+      ...errorDetails(error),
+      requestIdHash: Bun.CryptoHasher.hash('sha256', String(set.headers['x-request-id'] ?? ''), 'hex'),
+    })
     return status(500, failure('INTERNAL_SERVER_ERROR', 'Ocurrió un error inesperado'))
   })
   .as('plugin')
