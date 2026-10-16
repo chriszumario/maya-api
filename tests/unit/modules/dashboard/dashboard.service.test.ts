@@ -4,9 +4,17 @@ import { DashboardService } from '@/modules/dashboard/dashboard.service';
 import { whereRows } from '../../../helpers/drizzle';
 import { computeLocalDate } from '@/lib';
 import { DailyMetricsService } from '@/modules/today/daily-metrics.service';
+import { redis } from '@/db/redis';
 
 afterEach(() => mock.restore());
 beforeEach(() => {
+  const entries = new Map<string, string>();
+  spyOn(redis, 'connect').mockResolvedValue(undefined);
+  spyOn(redis, 'send').mockImplementation(async (command, args) => {
+    if (command === 'GET') return entries.get(args[0]!) ?? null;
+    entries.set(args[0]!, args[1]!);
+    return 'OK';
+  });
   spyOn(db.query.users, 'findFirst').mockResolvedValue({
     timezone: 'America/La_Paz',
   } as never);
@@ -255,6 +263,12 @@ describe('DashboardService.getTrends', () => {
       { status: 'completed', value: 1 },
       { status: 'cancelled', value: 0 },
     ]);
-    expect(trends.activity.caloriesLogged[3].value).toBe(1800);
+    expect(trends.activity.caloriesLogged[3]!.value).toBe(1800);
+    expect(await DashboardService.getTrends(17, 7, '2026-08-23')).toEqual(trends);
+    expect(select).toHaveBeenCalledTimes(5);
+    expect(redis.send).toHaveBeenCalledWith('SET', [
+      expect.stringContaining('dashboard:trends:v1:17:7:2026-08-23:'),
+      JSON.stringify(trends), 'EX', '60',
+    ]);
   });
 });

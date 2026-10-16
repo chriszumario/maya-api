@@ -25,7 +25,7 @@ Completa en `.env` las variables requeridas:
 | Variable | Uso |
 | --- | --- |
 | `APP_ENV` | `development` o `production`; en desarrollo se omiten los límites Redis |
-| `REDIS_URL` | Conexión Redis/Valkey para rate limiting |
+| `REDIS_URL` | Conexión Redis/Valkey para rate limiting y caché de lectura |
 | `JWT_SECRET` | Secreto JWT aleatorio de al menos 32 caracteres; los placeholders se rechazan |
 | `REFRESH_ROTATION_ENCRYPTION_KEY` | Clave aleatoria de 32 bytes en base64url para cifrar temporalmente rotaciones idempotentes |
 | `TURSO_DATABASE_URL` | URL de la base de datos Turso |
@@ -69,6 +69,15 @@ la misma clave reciben exactamente el mismo par de tokens durante 10 segundos.
 - `/admin`: gestión de usuarios y sesiones para administradores.
 
 ## Verificación y producción
+
+### Caché de lectura
+
+- `/dashboard/trends`: TTL de 60 segundos, separado por usuario, rango y fecha local actual.
+- `/admin/stats`: TTL de 30 segundos para agregados y sesiones activas; el uptime se calcula por petición.
+- La autenticación y autorización se ejecutan antes de acceder a estos datos.
+- Los cambios se reflejan al expirar el TTL (no hay invalidación inmediata).
+- Ante fallos de Redis se consulta la base de datos. Cada operación de caché tiene un presupuesto de 150 ms.
+- Las peticiones simultáneas a una misma clave comparten el cálculo dentro de cada proceso.
 
 ```bash
 bun run verify

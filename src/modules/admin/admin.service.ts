@@ -17,6 +17,7 @@ import {
   toStringIdCursorPage,
 } from '@/lib';
 import { RefreshTokenService } from '@/modules/auth/refresh-token.service';
+import { cache } from '@/lib/cache';
 
 const USER_COLUMNS = {
   id: users.id,
@@ -30,6 +31,23 @@ const USER_COLUMNS = {
 
 export abstract class AdminService {
   static async getStats() {
+    const { activeSessions, ...stats } = await cache.remember(
+      'admin:stats:v1',
+      30,
+      () => this.loadStats(),
+    );
+    return {
+      ...stats,
+      system: {
+        version: APP_VERSION,
+        uptimeSeconds: Math.floor(Bun.nanoseconds() / 1_000_000_000),
+        activeSessions,
+        aiConfigured: Boolean(env.GROQ_API_KEY),
+      },
+    };
+  }
+
+  private static async loadStats() {
     const thirtyDaysAgo = sql<string>`datetime('now', '-29 days')`;
     const thirtyDaysAgoDate = sql<string>`date('now', '-29 days')`;
     const topUsersQuery = sql`
@@ -133,12 +151,7 @@ export abstract class AdminService {
         nutritionEntries: nutritionCount,
       },
       topUsers,
-      system: {
-        version: APP_VERSION,
-        uptimeSeconds: Math.floor(Bun.nanoseconds() / 1_000_000_000),
-        activeSessions,
-        aiConfigured: Boolean(env.GROQ_API_KEY),
-      },
+      activeSessions,
     };
   }
 

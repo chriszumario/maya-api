@@ -8,6 +8,7 @@ import {
 } from '@/db/schema';
 import { getUserLocalDate } from '@/lib';
 import { DailyMetricsService } from '@/modules/today/daily-metrics.service';
+import { cache } from '@/lib/cache';
 
 const INSIGHT_DAYS = 14;
 const GOAL_STATUSES = ['pending', 'in_progress', 'completed', 'cancelled'] as const;
@@ -242,6 +243,14 @@ export abstract class DashboardService {
   static async getTrends(userId: number, days: number, endDate?: string) {
     const today = await getUserLocalDate(userId);
     endDate ??= today;
+    return cache.remember(
+      `dashboard:trends:v1:${userId}:${days}:${endDate}:${today}`,
+      60,
+      () => this.loadTrends(userId, days, endDate, today),
+    );
+  }
+
+  private static async loadTrends(userId: number, days: number, endDate: string, today: string) {
     const from = subtractDays(endDate, days - 1);
     const dates = dateRange(from, days);
     const missingDates = await getMissingMetricsDates(userId, dates, today);

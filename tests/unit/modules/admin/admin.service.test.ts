@@ -1,10 +1,20 @@
-import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
 import { db } from '@/db/drizzle';
 import { AdminService } from '@/modules/admin/admin.service';
 import { RefreshTokenService } from '@/modules/auth/refresh-token.service';
 import { expectApiError } from '../../../helpers/assertions';
+import { redis } from '@/db/redis';
 
 afterEach(() => mock.restore());
+beforeEach(() => {
+  const entries = new Map<string, string>();
+  spyOn(redis, 'connect').mockResolvedValue(undefined);
+  spyOn(redis, 'send').mockImplementation(async (command, args) => {
+    if (command === 'GET') return entries.get(args[0]!) ?? null;
+    entries.set(args[0]!, args[1]!);
+    return 'OK';
+  });
+});
 
 describe('AdminService.getStats', () => {
   test.serial('returns aggregate stats and ranks users with one preaggregated query', async () => {
@@ -38,6 +48,7 @@ describe('AdminService.getStats', () => {
     }]);
     spyOn(RefreshTokenService, 'countAllActiveSessions').mockResolvedValue(2);
 
+    const nanoseconds = spyOn(Bun, 'nanoseconds').mockReturnValue(1_000_000_000);
     const stats = await AdminService.getStats();
 
     expect(stats.users).toEqual({ total: 4, active: 3, pending: 1, admins: 1 });
@@ -63,7 +74,14 @@ describe('AdminService.getStats', () => {
       activityCount: 24,
     }]);
     expect(stats.system.activeSessions).toBe(2);
+    expect(stats.system.uptimeSeconds).toBe(1);
+    nanoseconds.mockReturnValue(5_000_000_000);
+    const cached = await AdminService.getStats();
+    expect(cached).toEqual({ ...stats, system: { ...stats.system, uptimeSeconds: 5 } });
     expect(all).toHaveBeenCalledTimes(1);
+    expect(redis.send).toHaveBeenCalledWith('SET', [
+      'maya:development:cache:admin:stats:v1', expect.any(String), 'EX', '30',
+    ]);
   });
 });
 
