@@ -1,20 +1,3 @@
-// {
-//   "compilerOptions": {
-//     "target": "ESNext",
-//     "module": "ESNext",
-//     "moduleResolution": "bundler",
-//     "paths": { "@/*": ["./src/*"] },
-//     "resolveJsonModule": true,
-//     "esModuleInterop": true,
-//     "forceConsistentCasingInFileNames": true,
-//     "strict": true,
-//     "noUnusedLocals": true,
-//     "noUnusedParameters": true,
-//     "noFallthroughCasesInSwitch": true,
-//     "skipLibCheck": true
-//   }
-// }
-
 {
   "compilerOptions": {
     // Environment setup & latest features
