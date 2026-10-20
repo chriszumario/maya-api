@@ -31,14 +31,14 @@ export function errorDetails(error: unknown) {
 
 export const httpLogger = (app: Elysia) =>
   app
-    .request(({ request, set }) => {
+    .onRequest(({ request, set }) => {
       const incomingId = request.headers.get('x-request-id');
       const requestId =
         incomingId && /^[A-Za-z0-9_-]{1,128}$/.test(incomingId) ? incomingId : Bun.randomUUIDv7();
       requests.set(request, { startedAt: Bun.nanoseconds(), requestId });
       set.headers['x-request-id'] = requestId;
     })
-    .afterResponse('global', ({ request, route, path, set, responseValue }) => {
+    .onAfterResponse('global', ({ request, route, path, set, responseValue }) => {
       const timing = requests.get(request);
       if (!timing || path === '/') return;
       const registeredPath = route ?? app.routes.find((candidate) => candidate.path === path)?.path;

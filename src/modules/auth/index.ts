@@ -30,6 +30,7 @@ export const auth = new Elysia({
       response: { 201: AuthModel.pendingResponse },
       detail: {
         summary: 'Registrar usuario',
+        security: [],
         description:
           'Crea una cuenta pendiente de aprobación. No se emiten tokens hasta que un admin apruebe al usuario.',
       },
@@ -52,6 +53,7 @@ export const auth = new Elysia({
       response: { 200: AuthModel.sessionResponse },
       detail: {
         summary: 'Iniciar sesión',
+        security: [],
         description:
           'Autentica y devuelve access JWT + refresh token + usuario. Usuarios no aprobados reciben 403.',
       },
@@ -77,6 +79,7 @@ export const auth = new Elysia({
       response: { 200: AuthModel.tokensResponse },
       detail: {
         summary: 'Renovar tokens',
+        security: [],
         description:
           `Intercambia un refresh token válido por un nuevo access JWT (${ACCESS_TOKEN_EXP}) ` +
           'y un refresh token rotado. Requiere Idempotency-Key = base64url(SHA-256(refreshToken)); ' +
@@ -103,6 +106,7 @@ export const auth = new Elysia({
       response: { 200: AuthModel.logoutResponse },
       detail: {
         summary: 'Cerrar sesión',
+        security: [],
         description:
           'Revoca la familia asociada al refresh token e invalida todos los access JWT del usuario. Idempotente.',
       },

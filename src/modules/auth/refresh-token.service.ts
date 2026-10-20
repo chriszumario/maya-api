@@ -10,7 +10,6 @@ import {
   encryptRefreshRotationResult,
   generateSecureToken,
   hashToken,
-  newSessionId,
 } from '@/lib';
 
 const MAX_ACTIVE_SESSIONS = 10;
@@ -55,7 +54,7 @@ export abstract class RefreshTokenService {
       await executor.insert(refreshTokens).values({
         userId,
         tokenHash: hashToken(rawToken),
-        familyId: newSessionId(),
+        familyId: Bun.randomUUIDv7(),
         expiresAt: sql`datetime('now', '+30 days')`,
       });
       await this.pruneExcessSessions(userId, executor);

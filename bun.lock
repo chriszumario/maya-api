@@ -5,12 +5,14 @@
     "": {
       "name": "maya-api",
       "dependencies": {
-        "@elysia/cors": "^1.4.2",
-        "@elysia/jwt": "2.0.0-beta.1",
-        "@logtape/logtape": "2.4.0-dev.881",
-        "@tursodatabase/serverless": "^1.4.0",
+        "@elysia/cors": "^2.0.0-beta.2",
+        "@elysia/jwt": "^2.0.0-beta.1",
+        "@elysia/openapi": "2.0.0-rc.0",
+        "@logtape/logtape": "^2.4.2",
+        "@tursodatabase/serverless": "^1.4.1",
+        "@valibot/to-json-schema": "^1.8.0",
         "drizzle-orm": "1.0.0-rc.5-ab785fc",
-        "elysia": "2.0.0-beta.29",
+        "elysia": "^2.0.0-rc.0",
         "groq-sdk": "^1.5.0",
         "valibot": "^1.4.2",
       },
@@ -23,9 +25,11 @@
   "packages": {
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.12.0", "", {}, "sha512-mlUE+rZ8CatQekLhnaiN91Iemdd+e2gFKooGlnRB3oPTL3VghLfX24dx7HrzMNeC1JrIB/0kpsfyty3f5HNfxQ=="],
 
-    "@elysia/cors": ["@elysia/cors@1.4.2", "", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-dXkfo1IxZWJkJReNYnPJorJqb+XpWno0D/YWlMEJSkiFIFd751zJ4R/YswAYdo88mLWo8cycEj673o7L+gbxsw=="],
+    "@elysia/cors": ["@elysia/cors@2.0.0-beta.2", "", { "peerDependencies": { "elysia": ">= 2.0.0-beta.30" } }, "sha512-Sumt71xVWde3B8pE28X0Swg79269Q22AiPVaUlyEr5B0aISl8Ngc9kCtx9XlC8i/39gI0jG6LnMHo2BlMS6xjw=="],
 
     "@elysia/jwt": ["@elysia/jwt@2.0.0-beta.1", "", { "dependencies": { "jose": "^6.2.3" }, "peerDependencies": { "elysia": ">= 2.0.0-beta.1" } }, "sha512-SlB7X8Hi9wi/FphpIqqHHg61Kn0DWbpSO93ho6Yr4+voooqjge8nFScz7N6IGo3+vWp/3gYdwRYl2AVWkj5Mgw=="],
+
+    "@elysia/openapi": ["@elysia/openapi@2.0.0-rc.0", "", { "peerDependencies": { "elysia": ">= 2.0.0-rc.0" } }, "sha512-IkRdigbDxqZpQzZ9Dg/HpJT2S4SUdRboVZ5umT0uYrUffJTRnb11seetF/gt96xqxbrWSZSlG8pxKtuabJ6NGg=="],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.25.12", "", { "os": "aix", "cpu": "ppc64" }, "sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA=="],
 
@@ -81,13 +85,15 @@
 
     "@js-temporal/polyfill": ["@js-temporal/polyfill@0.5.1", "", { "dependencies": { "jsbi": "^4.3.0" } }, "sha512-hloP58zRVCRSpgDxmqCWJNlizAlUgJFqG2ypq79DCvyv9tHjRYMDOcPFjzfl/A1/YxDvRCZz8wvZvmapQnKwFQ=="],
 
-    "@logtape/logtape": ["@logtape/logtape@2.4.0-dev.881", "", {}, "sha512-8rYGN05kP3pxqU0x4BALVTgAADh0MkAbEDzSRE2aSF5IwWL3tXn3BPdCeElR7buxbzrytUXIZuVnMWEg9DvW/Q=="],
+    "@logtape/logtape": ["@logtape/logtape@2.4.2", "", {}, "sha512-YJyC1gEMgWmTqJTRtKkjgasEbi8/0gP7Dj8n6bL46gQIAhpTY8uXJ+1QYMOgF5asotlGMvy3G7ejXUe45Yd1MQ=="],
 
-    "@tursodatabase/serverless": ["@tursodatabase/serverless@1.4.0", "", {}, "sha512-ZU3T76NG/E0NTKULqJ9TggJfbdPgRaChOS4HDOu3Srds7w7fSPie7jbPHzz+CLGrxs2TtMYtYB1lH5Bh6q1w7A=="],
+    "@tursodatabase/serverless": ["@tursodatabase/serverless@1.4.1", "", {}, "sha512-kcbGx0zb0Js4WnIrIF4AlsK3gzryRdTyUQev/9UbxtcH/iyk7u0Rk+l7dWdPC/5Ymu1WlbSyn4oUb02eNbn6Mw=="],
 
     "@types/bun": ["@types/bun@1.4.3", "", { "dependencies": { "bun-types": "1.4.3" } }, "sha512-N67Pqy8JXbAY/j0tNraS3V5mubGvc6rrrNDmDCtZLlFzccbUJPDb0tvgUBC5q4m8ybkP93Jcn1QB+RYQ6PvBhw=="],
 
     "@types/node": ["@types/node@26.2.0", "", { "dependencies": { "undici-types": "~8.3.0" } }, "sha512-5IviulTZeRNp2vAJ514cc/HUlY5nZ9fCbq9DMyC52BrhFZACo3nI0R7qBxhQmo/d27NFe96ur/b7Wwxklda+kg=="],
+
+    "@valibot/to-json-schema": ["@valibot/to-json-schema@1.8.0", "", { "peerDependencies": { "valibot": "^1.5.0" } }, "sha512-a0M+uwCuQZEPAo65NYkFSJ14O5c213KoSZmPdoCfuFvUhfULi4T2Z6Tpjv6lTVMW9RoLm74RpRAjNEa43KcN+g=="],
 
     "bun-types": ["bun-types@1.4.3", "", { "dependencies": { "@types/node": "*", "undici-types": "*" } }, "sha512-tinRJNGOmUN+tEAsn2y2e942n9JHRHR42iUYzDH75NmhJqVBokGSQkkfSFdNWwsANIdrK6ACH9t01M452YyTwg=="],
 
@@ -97,15 +103,15 @@
 
     "drizzle-orm": ["drizzle-orm@1.0.0-rc.5-ab785fc", "", { "peerDependencies": { "@aws-sdk/client-rds-data": ">=3", "@cloudflare/workers-types": ">=4", "@effect/sql-d1": ">=4.0.0-beta.105 || >=4.0.0", "@effect/sql-libsql": ">=4.0.0-beta.105 || >=4.0.0", "@effect/sql-mysql2": ">=4.0.0-beta.105 || >=4.0.0", "@effect/sql-pg": ">=4.0.0-beta.105 || >=4.0.0", "@effect/sql-pglite": ">=4.0.0-beta.105 || >=4.0.0", "@effect/sql-sqlite-bun": ">=4.0.0-beta.105 || >=4.0.0", "@effect/sql-sqlite-do": ">=4.0.0-beta.105 || >=4.0.0", "@effect/sql-sqlite-node": ">=4.0.0-beta.105 || >=4.0.0", "@effect/sql-sqlite-wasm": ">=4.0.0-beta.105 || >=4.0.0", "@electric-sql/pglite": ">=0.2.0", "@libsql/client": ">=0.10.0", "@libsql/client-wasm": ">=0.10.0", "@neondatabase/serverless": ">=0.10.0", "@op-engineering/op-sqlite": ">=17", "@opentelemetry/api": "^1.4.1", "@planetscale/database": ">=1.13", "@sinclair/typebox": ">=0.34.8", "@sqlitecloud/drivers": ">=1.0.653", "@tidbcloud/serverless": "*", "@tursodatabase/database": ">=0.7.1", "@tursodatabase/database-common": ">=0.7.1", "@tursodatabase/database-wasm": ">=0.7.1", "@tursodatabase/serverless": ">=1.4.0", "@tursodatabase/sync": ">=0.7.1", "@types/better-sqlite3": "*", "@types/mssql": "^9.1.4", "@types/pg": "*", "@types/sql.js": "*", "@upstash/redis": ">=1.34.7", "@vercel/postgres": ">=0.8.0", "@xata.io/client": "*", "arktype": ">=2.0.0", "better-sqlite3": ">=9.3.0", "bun-types": "*", "effect": ">=4.0.0-beta.105 || >=4.0.0", "expo-sqlite": ">=14.0.0", "minipg": ">=0.2.0", "mssql": "^11.0.1", "mysql2": ">=2", "pg": ">=8", "postgres": ">=3", "sql.js": ">=1", "sqlite3": ">=5", "typebox": ">=1.2.0", "valibot": ">=1.0.0-beta.7", "zod": "^3.25.0 || ^4.0.0" }, "optionalPeers": ["@aws-sdk/client-rds-data", "@cloudflare/workers-types", "@effect/sql-d1", "@effect/sql-libsql", "@effect/sql-mysql2", "@effect/sql-pg", "@effect/sql-pglite", "@effect/sql-sqlite-bun", "@effect/sql-sqlite-do", "@effect/sql-sqlite-node", "@effect/sql-sqlite-wasm", "@electric-sql/pglite", "@libsql/client", "@libsql/client-wasm", "@neondatabase/serverless", "@op-engineering/op-sqlite", "@opentelemetry/api", "@planetscale/database", "@sinclair/typebox", "@sqlitecloud/drivers", "@tidbcloud/serverless", "@tursodatabase/database", "@tursodatabase/database-common", "@tursodatabase/database-wasm", "@tursodatabase/serverless", "@tursodatabase/sync", "@types/better-sqlite3", "@types/mssql", "@types/pg", "@types/sql.js", "@upstash/redis", "@vercel/postgres", "@xata.io/client", "arktype", "better-sqlite3", "bun-types", "effect", "expo-sqlite", "minipg", "mssql", "mysql2", "pg", "postgres", "sql.js", "sqlite3", "typebox", "valibot", "zod"] }, "sha512-28PVt0PS/+4kPa8eKr4mqP8y/YcbdOgdVcGUa6LGl2Kd2bykNWuf/WUOFoSCoynagblbcRgMO1zChLvRcWD6Tg=="],
 
-    "elysia": ["elysia@2.0.0-beta.29", "", { "dependencies": { "deuri": "^3.0.0", "memoirist": "1.2.3" }, "peerDependencies": { "@types/bun": ">= 1.3.0", "exact-mirror": ">= 1.2.6", "openapi-types": ">= 12.0.0", "typebox": ">= 1.3.0", "typescript": ">= 5.7.0" }, "optionalPeers": ["@types/bun", "typescript"] }, "sha512-UvfroJu8hkTB4qKvBYx6t7eUTUVxGe8PnKG01+RxKCkef17vHzZc/DuXjIPDqQ7VfmE+bpxzPeIT63Ps2fLW7w=="],
+    "elysia": ["elysia@2.0.0-rc.0", "", { "dependencies": { "deuri": "^3.0.0", "memoirist": "1.2.3" }, "peerDependencies": { "@types/bun": ">= 1.3.0", "exact-mirror": ">= 1.2.6", "openapi-types": ">= 12.0.0", "typebox": ">= 1.3.0", "typescript": ">= 5.7.0" }, "optionalPeers": ["@types/bun", "typescript"] }, "sha512-7ks9V+dJcBE2i1CL9+cj2TbiTFdCSNiHfQbfp06g+8om5f72z+hWDnabG6+6bDloZDuvIWwXx8fAJmO3R6UnfA=="],
 
     "esbuild": ["esbuild@0.25.12", "", { "optionalDependencies": { "@esbuild/aix-ppc64": "0.25.12", "@esbuild/android-arm": "0.25.12", "@esbuild/android-arm64": "0.25.12", "@esbuild/android-x64": "0.25.12", "@esbuild/darwin-arm64": "0.25.12", "@esbuild/darwin-x64": "0.25.12", "@esbuild/freebsd-arm64": "0.25.12", "@esbuild/freebsd-x64": "0.25.12", "@esbuild/linux-arm": "0.25.12", "@esbuild/linux-arm64": "0.25.12", "@esbuild/linux-ia32": "0.25.12", "@esbuild/linux-loong64": "0.25.12", "@esbuild/linux-mips64el": "0.25.12", "@esbuild/linux-ppc64": "0.25.12", "@esbuild/linux-riscv64": "0.25.12", "@esbuild/linux-s390x": "0.25.12", "@esbuild/linux-x64": "0.25.12", "@esbuild/netbsd-arm64": "0.25.12", "@esbuild/netbsd-x64": "0.25.12", "@esbuild/openbsd-arm64": "0.25.12", "@esbuild/openbsd-x64": "0.25.12", "@esbuild/openharmony-arm64": "0.25.12", "@esbuild/sunos-x64": "0.25.12", "@esbuild/win32-arm64": "0.25.12", "@esbuild/win32-ia32": "0.25.12", "@esbuild/win32-x64": "0.25.12" }, "bin": { "esbuild": "bin/esbuild" } }, "sha512-bbPBYYrtZbkt6Os6FiTLCTFxvq4tt3JKall1vRwshA3fdVztsLAatFaZobhkBC8/BrPetoa0oksYoKXoG4ryJg=="],
 
-    "exact-mirror": ["exact-mirror@1.2.4", "", { "peerDependencies": { "typebox": ">= 1.1.0" }, "optionalPeers": ["typebox"] }, "sha512-lNLw824fkSqcHSxNIh8skA7gHO5X5Q8UUllXuRedtJCU8cJwKOT3XPQY8GfhveatFMO4nCK8+oEXsLGErMWC/Q=="],
+    "exact-mirror": ["exact-mirror@1.2.6", "", { "peerDependencies": { "typebox": ">= 1.1.0" }, "optionalPeers": ["typebox"] }, "sha512-EGx81nhFP1GE94coJsz94FLzdxWrnkNCJdfdX44rbd7pVcAotWzDlBJUC7yy1Ae7d7dYKpoTtZ1jCAIz2IVtfA=="],
 
     "get-tsconfig": ["get-tsconfig@4.14.3", "", { "dependencies": { "resolve-pkg-maps": "^1.0.0" } }, "sha512-++QEw4DIY7WGoukz+/+A/8dGYPT9l9yIadnmSgZ8Rjr3YVSVDipQSO9CdnJo9ePqFqUUqh+wk9uIaoiAwsiPkA=="],
 
-    "groq-sdk": ["groq-sdk@1.5.0", "", { "bin": { "groq-sdk": "bin/cli" } }, "sha512-aa5yaMVd8kehBacU3Pp7roObOuPksZNau+nPW+GDDB7OV/8jybVzeeOv54lZj8owNNIc3a7Tu2eYI7/kIwtMNw=="],
+    "groq-sdk": ["groq-sdk@1.6.0", "", { "bin": { "groq-sdk": "bin/cli" } }, "sha512-ggMgo6n84aZdNObgkSbSxWrdAq4wABsViIRb5e4N15bMUtDLZVhqlgZOI7X4TeqdBMdaVUOuUdZxAZIp06u0vw=="],
 
     "jiti": ["jiti@2.7.0", "", { "bin": { "jiti": "lib/jiti-cli.mjs" } }, "sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ=="],
 

@@ -9,9 +9,9 @@ afterEach(() => mock.restore());
 beforeEach(() => {
   const entries = new Map<string, string>();
   spyOn(redis, 'connect').mockResolvedValue(undefined);
-  spyOn(redis, 'send').mockImplementation(async (command, args) => {
-    if (command === 'GET') return entries.get(args[0]!) ?? null;
-    entries.set(args[0]!, args[1]!);
+  spyOn(redis, 'get').mockImplementation(async (key) => entries.get(String(key)) ?? null);
+  spyOn(redis, 'set').mockImplementation(async (key, value) => {
+    entries.set(String(key), String(value));
     return 'OK';
   });
 });
@@ -85,12 +85,12 @@ describe('AdminService.getStats', () => {
     const cached = await AdminService.getStats();
     expect(cached).toEqual({ ...stats, system: { ...stats.system, uptimeSeconds: 5 } });
     expect(all).toHaveBeenCalledTimes(1);
-    expect(redis.send).toHaveBeenCalledWith('SET', [
+    expect(redis.set).toHaveBeenCalledWith(
       'maya:development:cache:admin:stats:v1',
       expect.any(String),
       'EX',
-      '30',
-    ]);
+      30,
+    );
   });
 });
 

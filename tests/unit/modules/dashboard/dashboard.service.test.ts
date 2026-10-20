@@ -10,9 +10,9 @@ afterEach(() => mock.restore());
 beforeEach(() => {
   const entries = new Map<string, string>();
   spyOn(redis, 'connect').mockResolvedValue(undefined);
-  spyOn(redis, 'send').mockImplementation(async (command, args) => {
-    if (command === 'GET') return entries.get(args[0]!) ?? null;
-    entries.set(args[0]!, args[1]!);
+  spyOn(redis, 'get').mockImplementation(async (key) => entries.get(String(key)) ?? null);
+  spyOn(redis, 'set').mockImplementation(async (key, value) => {
+    entries.set(String(key), String(value));
     return 'OK';
   });
   spyOn(db.query.users, 'findFirst').mockResolvedValue({
@@ -313,11 +313,11 @@ describe('DashboardService.getTrends', () => {
     expect(trends.activity.caloriesLogged[3]!.value).toBe(1800);
     expect(await DashboardService.getTrends(17, 7, '2026-08-23')).toEqual(trends);
     expect(select).toHaveBeenCalledTimes(5);
-    expect(redis.send).toHaveBeenCalledWith('SET', [
+    expect(redis.set).toHaveBeenCalledWith(
       expect.stringContaining('dashboard:trends:v1:17:7:2026-08-23:'),
       JSON.stringify(trends),
       'EX',
-      '60',
-    ]);
+      60,
+    );
   });
 });

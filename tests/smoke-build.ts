@@ -11,6 +11,16 @@ const routes = (instance: typeof app) =>
   instance.routes.map(({ method, path }) => `${method} ${path}`).sort();
 
 assert.deepEqual(routes(built), routes(app), 'El build debe conservar todas las rutas');
+const documentation = await built.handle('/openapi');
+assert.equal(documentation.status, 200);
+assert((await documentation.text()).includes('/openapi/json'));
+const specification = await built.handle('/openapi/json');
+assert.equal(specification.status, 200);
+assert.deepEqual(
+  await specification.json(),
+  await (await app.handle('/openapi/json')).json(),
+  'El build debe conservar el documento OpenAPI completo',
+);
 for (const [path, status] of [
   ['/', 200],
   ['/auth/me', 401],

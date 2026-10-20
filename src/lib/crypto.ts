@@ -10,20 +10,14 @@ function toBase64Url(bytes: Uint8Array): string {
   return bytes.toBase64({ alphabet: 'base64url', omitPadding: true });
 }
 
-function fromBase64Url(value: string): Uint8Array {
+function fromBase64Url(value: string) {
   return Uint8Array.fromBase64(value, { alphabet: 'base64url' });
-}
-
-function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
-  const copy = new Uint8Array(bytes.byteLength);
-  copy.set(bytes);
-  return copy.buffer;
 }
 
 function getRefreshRotationKey(): Promise<CryptoKey> {
   refreshRotationKey ??= crypto.subtle.importKey(
     'raw',
-    toArrayBuffer(fromBase64Url(env.REFRESH_ROTATION_ENCRYPTION_KEY)),
+    fromBase64Url(env.REFRESH_ROTATION_ENCRYPTION_KEY),
     'AES-GCM',
     false,
     ['encrypt', 'decrypt'],
@@ -33,7 +27,7 @@ function getRefreshRotationKey(): Promise<CryptoKey> {
 
 export function generateSecureToken(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
-  return bytes.toBase64({ alphabet: 'base64url', omitPadding: true });
+  return toBase64Url(bytes);
 }
 
 export function hashToken(rawToken: string): string {
@@ -41,8 +35,7 @@ export function hashToken(rawToken: string): string {
 }
 
 export function deriveRefreshIdempotencyKey(rawToken: string): string {
-  const digest = Bun.CryptoHasher.hash('sha256', rawToken, 'base64');
-  return digest.replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
+  return Bun.CryptoHasher.hash('sha256', rawToken, 'base64url');
 }
 
 export function constantTimeEqual(first: string, second: string): boolean {
@@ -59,8 +52,8 @@ export async function encryptRefreshRotationResult(
   const ciphertext = await crypto.subtle.encrypt(
     {
       name: 'AES-GCM',
-      iv: toArrayBuffer(iv),
-      additionalData: toArrayBuffer(encoder.encode(additionalData)),
+      iv,
+      additionalData: encoder.encode(additionalData),
     },
     await getRefreshRotationKey(),
     encoder.encode(JSON.stringify(result)),
@@ -79,11 +72,11 @@ export async function decryptRefreshRotationResult(
   const plaintext = await crypto.subtle.decrypt(
     {
       name: 'AES-GCM',
-      iv: toArrayBuffer(fromBase64Url(encodedIv)),
-      additionalData: toArrayBuffer(encoder.encode(additionalData)),
+      iv: fromBase64Url(encodedIv),
+      additionalData: encoder.encode(additionalData),
     },
     await getRefreshRotationKey(),
-    toArrayBuffer(fromBase64Url(encodedCiphertext)),
+    fromBase64Url(encodedCiphertext),
   );
   const result: unknown = JSON.parse(decoder.decode(plaintext));
   if (
@@ -110,12 +103,8 @@ export async function decryptRefreshRotationResult(
   };
 }
 
-export function newSessionId(): string {
-  return Bun.randomUUIDv7();
-}
-
 const PASSWORD_OPTS = {
-  algorithm: 'argon2id' as const,
+  algorithm: 'argon2id',
   memoryCost: 65_536,
   timeCost: 2,
 } as const;

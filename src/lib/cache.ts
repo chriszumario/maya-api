@@ -9,8 +9,8 @@ const cacheKey = (key: string) => `maya:${env.APP_ENV}:cache:${key}`;
 export async function getCached<T>(key: string): Promise<T | null> {
   return withTimeout(async () => {
     await ensureRedisConnection();
-    const value = await redis.send('GET', [cacheKey(key)]);
-    return value === null ? null : (JSON.parse(value as string) as T);
+    const value = await redis.get(cacheKey(key));
+    return value === null ? null : (JSON.parse(value) as T);
   }, REDIS_TIMEOUT_MS);
 }
 
@@ -22,7 +22,7 @@ export async function setCached(key: string, value: unknown, ttlSeconds: number)
   if (serialized === undefined) throw new TypeError('El valor no se puede serializar como JSON');
   await withTimeout(async () => {
     await ensureRedisConnection();
-    await redis.send('SET', [cacheKey(key), serialized, 'EX', String(ttlSeconds)]);
+    await redis.set(cacheKey(key), serialized, 'EX', ttlSeconds);
   }, REDIS_TIMEOUT_MS);
 }
 
@@ -30,7 +30,7 @@ export async function invalidateCache(...keys: string[]): Promise<void> {
   if (keys.length === 0) return;
   await withTimeout(async () => {
     await ensureRedisConnection();
-    await redis.send('DEL', keys.map(cacheKey));
+    await redis.del(...keys.map(cacheKey));
   }, REDIS_TIMEOUT_MS);
 }
 
@@ -69,11 +69,3 @@ export const cache = {
     }
   },
 };
-
-export function getOrSetCached<T>(
-  key: string,
-  ttlSeconds: number,
-  load: () => Promise<T>,
-): Promise<T> {
-  return cache.remember(key, ttlSeconds, load);
-}

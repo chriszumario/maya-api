@@ -7,7 +7,6 @@ import {
   generateSecureToken,
   hashPassword,
   hashToken,
-  newSessionId,
   verifyPassword,
 } from '@/lib/crypto';
 
@@ -33,6 +32,7 @@ describe('security utilities', () => {
     const key = deriveRefreshIdempotencyKey('opaque-refresh-token');
 
     expect(key).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(key).toBe(Buffer.from(hashToken('opaque-refresh-token'), 'hex').toString('base64url'));
     expect(key).toBe(deriveRefreshIdempotencyKey('opaque-refresh-token'));
     expect(constantTimeEqual(key, key)).toBe(true);
     expect(constantTimeEqual(key, `${key.slice(0, -1)}x`)).toBe(false);
@@ -48,12 +48,6 @@ describe('security utilities', () => {
     expect(first).not.toContain('refresh-secret');
     expect(await decryptRefreshRotationResult(first, 'rotation:1')).toEqual(result);
     await expect(decryptRefreshRotationResult(first, 'rotation:2')).rejects.toThrow();
-  });
-
-  test('creates UUIDv7 session family IDs', () => {
-    expect(newSessionId()).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-    );
   });
 
   test('authenticates the cached token version and rejects invalid metadata', async () => {

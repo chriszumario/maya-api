@@ -92,7 +92,40 @@ operación establece una nueva conexión; no se encolan comandos offline.
 - `/ai`: mejoras de texto y estimación de calorías mediante Groq.
 - `/admin`: gestión de usuarios y sesiones para administradores.
 
+## Documentación OpenAPI
+
+- Interfaz interactiva Scalar: `http://localhost:4000/openapi`.
+- Especificación OpenAPI 3.1.2: `http://localhost:4000/openapi/json`.
+
+Ambas rutas son públicas. Para probar una ruta protegida, inicia sesión con
+`POST /auth/login` y pega el `accessToken` en la autenticación **Bearer JWT** de Scalar.
+Las operaciones públicas tienen `security: []`; las de administración requieren
+un usuario administrador. La documentación incluye cuerpos, parámetros, respuestas,
+etiquetas por módulo y el esquema común de errores `ApiFailure`.
+
+Los esquemas se generan desde los modelos Valibot usados por las rutas mediante
+`@elysia/openapi` y `@valibot/to-json-schema`. La generación funciona también en el
+bundle AOT. Los parámetros se documentan antes de su conversión a números; las
+validaciones personalizadas y normalizaciones se siguen ejecutando en la API.
+El smoke test comprueba que el bundle expone el mismo documento que el código fuente.
+
 ## Verificación y producción
+
+### APIs nativas de Bun
+
+- [Groq SDK](https://github.com/groq/groq-typescript): usa el `fetch` de Bun, una petición
+  por llamada y un límite de 15 segundos con `AbortSignal.timeout`. El SDK gestiona
+  el transporte y Valibot valida el resultado generado.
+- [Redis](https://bun.com/docs/runtime/redis): la caché usa `get`, `set` con expiración
+  atómica (`EX`) y `del` tipados. El rate limiter usa un único script Lua atómico.
+- [Hashing](https://bun.com/docs/runtime/hashing): `Bun.password` para Argon2id y
+  `Bun.CryptoHasher` para SHA-256, incluyendo salida base64url directa.
+  Web Crypto cifra los replays AES-GCM usando los buffers originales.
+- [Bundler](https://bun.com/docs/bundler): `Bun.build` con el plugin AOT de Elysia;
+  los errores rechazan la promesa y terminan el proceso con código de error.
+- [Tests paralelos](https://bun.com/docs/test/parallel): `bun run test` y
+  `bun run test:coverage` usan cuatro procesos con aislamiento entre archivos.
+  `bun test` permite ejecutar la suite en un solo proceso.
 
 ### Lint y formato nativos de Bun
 
@@ -108,7 +141,7 @@ bun run format:check
 Las reglas y el estilo se definen en `bunfig.toml`, sin oxlint, oxfmt ni Prettier
 como dependencias. Lint rechaza también las advertencias y los tipos `any`
 explícitos. El formato usa dos espacios, comillas simples y punto y coma; excluye
-las migraciones generadas. `format:check` comprueba sin modificar archivos.
+las migraciones generadas y los skills instalados. `format:check` comprueba sin modificar archivos.
 
 Se requiere una versión con `bun lint`, `bun fmt` y `bun check` nativos
 (comprobado con `1.4.4-canary.1+ea6a2c7b7`). Bun estable `1.4.3` no los ofrece.
@@ -118,7 +151,7 @@ explícitamente el comando nativo y `--max-warnings 0` para rechazar advertencia
 
 `bunfig.toml` conserva solo las preferencias que difieren de los valores por
 defecto: ancho de 100 columnas, comillas simples y exclusión de migraciones
-generadas. Dos espacios, punto y coma, comas finales y finales de línea LF ya son
+generadas y skills. Dos espacios, punto y coma, comas finales y finales de línea LF ya son
 los valores predeterminados del formateador. La regla `no-explicit-any` conserva
 la restricción del antiguo linter; las demás reglas son las nativas de Bun.
 La sección `[test]` limita las pruebas a `tests` y precarga su entorno común.

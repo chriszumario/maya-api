@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
 import * as v from 'valibot';
 import { cors } from '@elysia/cors';
-import { APP_VERSION, env, errorHandler } from '@/lib';
+import { APP_VERSION, ApiFailureSchema, env, errorHandler } from '@/lib';
 import { admin } from '@/modules/admin';
 import { ai } from '@/modules/ai';
 import { auth } from '@/modules/auth';
@@ -13,6 +13,7 @@ import { taskLogs } from '@/modules/task-logs';
 import { tasks, tasksById } from '@/modules/tasks';
 import { today } from '@/modules/today';
 import { httpLogger } from './lib/logger';
+import { apiDocumentation } from './lib/openapi';
 
 const healthResponse = v.object({
   name: v.string(),
@@ -39,12 +40,14 @@ export const app = new Elysia({ name: 'maya-api' })
     }),
   )
   .use(errorHandler)
+  .model({ ApiFailure: ApiFailureSchema })
+  .use(apiDocumentation)
   .options('/*', ({ status }) => status(204))
   .get(
     '/',
     {
       response: { 200: healthResponse },
-      detail: { summary: 'Estado de Maya API', tags: ['System'] },
+      detail: { summary: 'Estado de Maya API', tags: ['System'], security: [] },
     },
     () => ({
       name: 'Maya API',

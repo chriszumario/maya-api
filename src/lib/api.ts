@@ -20,8 +20,10 @@ export class ApiError extends HTTPError<string> {
 }
 
 export const errorHandler = new Elysia({ name: 'error-handler' })
-  .error(ApiError, ({ error, status }) => status(error.status, failure(error.type, error.message)))
-  .error(DrizzleQueryError, ({ error, status, set }) => {
+  .onError(ApiError, ({ error, status }) =>
+    status(error.status, failure(error.type, error.message)),
+  )
+  .onError(DrizzleQueryError, ({ error, status, set }) => {
     const causeMessage = error.cause instanceof Error ? error.cause.message : '';
     if (causeMessage.includes('users_email_unique')) {
       return status(400, failure('EMAIL_IN_USE', 'El correo ya está en uso'));
@@ -39,7 +41,7 @@ export const errorHandler = new Elysia({ name: 'error-handler' })
 
     return status(500, failure('INTERNAL_SERVER_ERROR', 'Ocurrió un error inesperado'));
   })
-  .error(ValidationError, ({ error, status, set }) => {
+  .onError(ValidationError, ({ error, status, set }) => {
     if (error.status === 500) {
       logger.error('La respuesta no cumple el contrato', {
         ...errorDetails(error),
@@ -53,11 +55,11 @@ export const errorHandler = new Elysia({ name: 'error-handler' })
     }
     return status(422, failure('VALIDATION_ERROR', 'La solicitud contiene datos inválidos'));
   })
-  .error(NotFound, ({ status }) => status(404, failure('ROUTE_NOT_FOUND', 'Ruta no encontrada')))
-  .error(ParseError, ({ status }) =>
+  .onError(NotFound, ({ status }) => status(404, failure('ROUTE_NOT_FOUND', 'Ruta no encontrada')))
+  .onError(ParseError, ({ status }) =>
     status(400, failure('PARSE_ERROR', 'El cuerpo de la solicitud no es válido')),
   )
-  .error(({ error, status, set }) => {
+  .onError(({ error, status, set }) => {
     logger.error('Error inesperado al procesar la solicitud', {
       ...errorDetails(error),
       requestIdHash: Bun.CryptoHasher.hash(

@@ -33,10 +33,16 @@ tests/
 ## Comandos
 
 ```bash
-bun test
+bun run test
 bun run test:coverage
 bun run typecheck
 ```
+
+`bun run test` y `test:coverage` usan `--parallel=4`: cada archivo tiene su propio
+entorno global, módulos y mocks. Dentro de cada archivo los tests siguen siendo
+secuenciales. `bun test` ejecuta la suite en un único proceso para depuración.
+Las pruebas de IA ejecutan el SDK de Groq e interceptan su `fetch`: verifican solicitudes,
+respuestas y errores de transporte con credenciales ficticias.
 
 ## Servicios reales
 
