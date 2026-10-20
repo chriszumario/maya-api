@@ -40,20 +40,20 @@ Ejemplo:
 
 Estados HTTP habituales:
 
-| Estado | Significado |
-| --- | --- |
-| `200` | Solicitud exitosa |
-| `201` | Recurso creado |
-| `400` | Regla de negocio o cursor inválido |
-| `401` | No autenticado o token inválido |
-| `403` | Cuenta pendiente o permisos insuficientes |
-| `404` | Ruta o recurso no encontrado |
-| `409` | Conflicto de estado o actualización concurrente |
-| `429` | Límite de solicitudes excedido |
-| `422` | Body, query o parámetro inválido |
-| `502` | El proveedor de IA falló, devolvió una respuesta vacía o devolvió datos inválidos |
-| `503` | Servicio temporalmente no disponible, incluida una rotación concurrente que todavía está en curso |
-| `500` | Error interno o respuesta del servidor que incumple su contrato, sin detalles sensibles |
+| Estado | Significado                                                                                       |
+| ------ | ------------------------------------------------------------------------------------------------- |
+| `200`  | Solicitud exitosa                                                                                 |
+| `201`  | Recurso creado                                                                                    |
+| `400`  | Regla de negocio o cursor inválido                                                                |
+| `401`  | No autenticado o token inválido                                                                   |
+| `403`  | Cuenta pendiente o permisos insuficientes                                                         |
+| `404`  | Ruta o recurso no encontrado                                                                      |
+| `409`  | Conflicto de estado o actualización concurrente                                                   |
+| `429`  | Límite de solicitudes excedido                                                                    |
+| `422`  | Body, query o parámetro inválido                                                                  |
+| `502`  | El proveedor de IA falló, devolvió una respuesta vacía o devolvió datos inválidos                 |
+| `503`  | Servicio temporalmente no disponible, incluida una rotación concurrente que todavía está en curso |
+| `500`  | Error interno o respuesta del servidor que incumple su contrato, sin detalles sensibles           |
 
 ### CORS
 
@@ -125,8 +125,8 @@ No requiere autenticación.
 
 ```ts
 type RegisterBody = {
-  name: string;     // 2 a 100 caracteres; se eliminan espacios exteriores
-  email: string;    // email válido, máximo 254; se normaliza a minúsculas
+  name: string; // 2 a 100 caracteres; se eliminan espacios exteriores
+  email: string; // email válido, máximo 254; se normaliza a minúsculas
   password: string; // 12 a 128 caracteres
   timezone: string; // zona horaria IANA capturada por el cliente
 };
@@ -147,7 +147,7 @@ Respuesta `201`:
 
 ```ts
 type RegisterResponse = {
-  status: "pending_approval";
+  status: 'pending_approval';
 };
 ```
 
@@ -214,7 +214,7 @@ type RefreshBody = {
 };
 
 type RefreshHeaders = {
-  "Idempotency-Key": string; // base64url(SHA-256(refreshToken)), sin padding
+  'Idempotency-Key': string; // base64url(SHA-256(refreshToken)), sin padding
 };
 ```
 
@@ -222,10 +222,10 @@ type RefreshHeaders = {
 reversible del refresh token enviado:
 
 ```ts
-import { createHash } from "node:crypto";
+import { createHash } from 'node:crypto';
 
 function refreshIdempotencyKey(refreshToken: string): string {
-  return createHash("sha256").update(refreshToken, "utf8").digest("base64url");
+  return createHash('sha256').update(refreshToken, 'utf8').digest('base64url');
 }
 ```
 
@@ -382,9 +382,9 @@ La operación revoca todos los refresh tokens e invalida inmediatamente los acce
 Todas las rutas requieren autenticación.
 
 ```ts
-type GoalCategory = "growth" | "experience" | "contribution";
-type GoalPriority = "low" | "medium" | "high";
-type GoalStatus = "pending" | "in_progress" | "completed" | "cancelled";
+type GoalCategory = 'growth' | 'experience' | 'contribution';
+type GoalPriority = 'low' | 'medium' | 'high';
+type GoalStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 
 type Goal = {
   id: number;
@@ -401,8 +401,8 @@ type Goal = {
 };
 
 type CreateGoalBody = {
-  title: string;       // 3 a 200 caracteres
-  motivation: string;  // 3 a 4000 caracteres
+  title: string; // 3 a 200 caracteres
+  motivation: string; // 3 a 4000 caracteres
   category: GoalCategory;
   priority: GoalPriority;
 };
@@ -414,15 +414,15 @@ establece `startDate` al pasar a `in_progress` y `endedAt` al pasar a `completed
 a `completed`, ambas fechas reciben el mismo día; si se cancela desde `pending`,
 `startDate` permanece en `null`.
 
-| Ruta | Entrada | Respuesta exitosa |
-| --- | --- | --- |
-| `POST /goals` | `CreateGoalBody` | `201 Goal` |
-| `GET /goals?limit=20&cursor=...` | filtros opcionales | `200 CursorPage<Goal>` |
-| `GET /goals/:id` | `id: NumericId` | `200 Goal & { tasks: Task[]; reviews: GoalReview[] }` |
-| `PATCH /goals/:id` | `title?`, `motivation?`, `category?`, `priority?`, `status?` | `200 Goal` |
-| `DELETE /goals/:id` | `id: NumericId` | `200 { id: number }` |
-| `GET /goals/:id/reviews?limit=20&cursor=...` | filtros opcionales | `200 CursorPage<GoalReview>` |
-| `POST /goals/:id/reviews` | `CreateGoalReviewBody` | `201 GoalReview` |
+| Ruta                                         | Entrada                                                      | Respuesta exitosa                                     |
+| -------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------- |
+| `POST /goals`                                | `CreateGoalBody`                                             | `201 Goal`                                            |
+| `GET /goals?limit=20&cursor=...`             | filtros opcionales                                           | `200 CursorPage<Goal>`                                |
+| `GET /goals/:id`                             | `id: NumericId`                                              | `200 Goal & { tasks: Task[]; reviews: GoalReview[] }` |
+| `PATCH /goals/:id`                           | `title?`, `motivation?`, `category?`, `priority?`, `status?` | `200 Goal`                                            |
+| `DELETE /goals/:id`                          | `id: NumericId`                                              | `200 { id: number }`                                  |
+| `GET /goals/:id/reviews?limit=20&cursor=...` | filtros opcionales                                           | `200 CursorPage<GoalReview>`                          |
+| `POST /goals/:id/reviews`                    | `CreateGoalReviewBody`                                       | `201 GoalReview`                                      |
 
 ```ts
 type CreateGoalReviewBody = {
@@ -451,7 +451,7 @@ resto. Una meta `completed` o `cancelled` es terminal y no puede volver a otro e
 Todas las rutas requieren autenticación.
 
 ```ts
-type TaskFrequency = "daily" | "weekly" | "monthly" | "once";
+type TaskFrequency = 'daily' | 'weekly' | 'monthly' | 'once';
 
 type Task = {
   id: number;
@@ -469,18 +469,18 @@ type Task = {
 
 `recurrenceMask` es un entero cuya interpretación depende de `frequency`:
 
-| `frequency` | Valores válidos | Interpretación | Ejemplo |
-| --- | --- | --- | --- |
-| `daily` | `0` | Todos los días | `0` |
-| `weekly` | `1..127` | Suma de los bits de los días seleccionados | `31`: lunes a viernes |
-| `monthly` | `1..31` | Día del mes | `15`: día 15 |
-| `once` | `19000101..20991231` | Fecha real como entero `YYYYMMDD` | `20260915`: 15 de septiembre de 2026 |
+| `frequency` | Valores válidos      | Interpretación                             | Ejemplo                              |
+| ----------- | -------------------- | ------------------------------------------ | ------------------------------------ |
+| `daily`     | `0`                  | Todos los días                             | `0`                                  |
+| `weekly`    | `1..127`             | Suma de los bits de los días seleccionados | `31`: lunes a viernes                |
+| `monthly`   | `1..31`              | Día del mes                                | `15`: día 15                         |
+| `once`      | `19000101..20991231` | Fecha real como entero `YYYYMMDD`          | `20260915`: 15 de septiembre de 2026 |
 
 Para `weekly`, cada día ocupa un bit:
 
-| Día | Lunes | Martes | Miércoles | Jueves | Viernes | Sábado | Domingo |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Valor | `1` | `2` | `4` | `8` | `16` | `32` | `64` |
+| Día   | Lunes | Martes | Miércoles | Jueves | Viernes | Sábado | Domingo |
+| ----- | ----: | -----: | --------: | -----: | ------: | -----: | ------: |
+| Valor |   `1` |    `2` |       `4` |    `8` |    `16` |   `32` |    `64` |
 
 Los días se combinan sumando sus valores. Por ejemplo, lunes, miércoles y viernes producen
 `1 + 4 + 16 = 21`; todos los días producen `127`. La selección se evalúa con una operación
@@ -500,12 +500,12 @@ En tareas `daily`, `recurrenceMask` puede omitirse y se guarda como `0`. Para la
 frecuencias es obligatorio. Una tarea `once` debe contener una fecha existente; valores como
 `20260230` son rechazados aunque estén dentro del rango numérico.
 
-| Ruta | Entrada | Respuesta exitosa |
-| --- | --- | --- |
-| `POST /goals/:id/tasks` | `CreateTaskBody` | `201 Task` |
-| `GET /goals/:id/tasks?limit=20&cursor=...` | filtros opcionales | `200 CursorPage<Task>` |
-| `PATCH /tasks/:id` | al menos un campo modificable de `Task` | `200 Task` |
-| `DELETE /tasks/:id` | — | `200 { id: number }` |
+| Ruta                                       | Entrada                                 | Respuesta exitosa      |
+| ------------------------------------------ | --------------------------------------- | ---------------------- |
+| `POST /goals/:id/tasks`                    | `CreateTaskBody`                        | `201 Task`             |
+| `GET /goals/:id/tasks?limit=20&cursor=...` | filtros opcionales                      | `200 CursorPage<Task>` |
+| `PATCH /tasks/:id`                         | al menos un campo modificable de `Task` | `200 Task`             |
+| `DELETE /tasks/:id`                        | —                                       | `200 { id: number }`   |
 
 En un `PATCH`, `recurrenceMask` puede modificarse sin cambiar la frecuencia. Si se cambia
 `frequency` a `weekly`, `monthly` u `once`, debe enviarse también el nuevo `recurrenceMask`; no se
@@ -517,7 +517,7 @@ cliente modifica simultáneamente el recurso, el servidor responde `409 TASK_UPD
 ## Ejecuciones de tareas
 
 ```ts
-type TaskLogStatus = "in_progress" | "completed";
+type TaskLogStatus = 'in_progress' | 'completed';
 
 type TaskLog = {
   id: number;
@@ -536,12 +536,12 @@ type CreateTaskLogBody = {
 };
 ```
 
-| Ruta | Entrada | Respuesta exitosa |
-| --- | --- | --- |
-| `POST /task-logs` | `CreateTaskLogBody` | `200 TaskLog` (upsert por tarea y fecha) |
-| `GET /task-logs?limit=20&cursor=...&date=...` | filtros opcionales | `200 CursorPage<TaskLog>` |
-| `GET /task-logs/:id` | — | `200 TaskLog` |
-| `PATCH /task-logs/:id` | `status?`, `durationMinutes?`; al menos uno | `200 TaskLog` |
+| Ruta                                          | Entrada                                     | Respuesta exitosa                        |
+| --------------------------------------------- | ------------------------------------------- | ---------------------------------------- |
+| `POST /task-logs`                             | `CreateTaskLogBody`                         | `200 TaskLog` (upsert por tarea y fecha) |
+| `GET /task-logs?limit=20&cursor=...&date=...` | filtros opcionales                          | `200 CursorPage<TaskLog>`                |
+| `GET /task-logs/:id`                          | —                                           | `200 TaskLog`                            |
+| `PATCH /task-logs/:id`                        | `status?`, `durationMinutes?`; al menos uno | `200 TaskLog`                            |
 
 `nextCursor === null` indica que no quedan más elementos. El cursor debe reenviarse sin modificar.
 `limit` admite valores de 1 a 100 y vale 20 por defecto. La fecha del upsert siempre es la fecha
@@ -553,7 +553,7 @@ o calendario actual de la tarea. Los conflictos concurrentes responden `409 TASK
 ## Diario
 
 ```ts
-type Mood = "excellent" | "good" | "neutral" | "bad" | "terrible";
+type Mood = 'excellent' | 'good' | 'neutral' | 'bad' | 'terrible';
 
 type JournalEntry = {
   id: number;
@@ -587,13 +587,13 @@ type CreateJournalBody = {
 
 `POST /journal` requiere todos los campos de `CreateJournalBody` y crea una entrada nueva. Se permiten varias entradas en una misma fecha.
 
-| Ruta | Respuesta exitosa |
-| --- | --- |
-| `POST /journal` | `201 JournalEntry` |
+| Ruta                               | Respuesta exitosa              |
+| ---------------------------------- | ------------------------------ |
+| `POST /journal`                    | `201 JournalEntry`             |
 | `GET /journal?limit=20&cursor=...` | `200 CursorPage<JournalEntry>` |
-| `GET /journal/:id` | `200 JournalEntry` |
-| `PATCH /journal/:id` | `200 JournalEntry` |
-| `DELETE /journal/:id` | `200 { id: number }` |
+| `GET /journal/:id`                 | `200 JournalEntry`             |
+| `PATCH /journal/:id`               | `200 JournalEntry`             |
+| `DELETE /journal/:id`              | `200 { id: number }`           |
 
 Los textos admiten hasta 10 000 caracteres; `energyLevel` es un entero entre 1 y 5. Un `PATCH` debe contener al menos un campo.
 El título admite entre 1 y 200 caracteres. El listado usa `limit=20` por defecto, admite hasta
@@ -602,7 +602,7 @@ El título admite entre 1 y 200 caracteres. El listado usa `limit=20` por defect
 ## Nutrición
 
 ```ts
-type MealType = "breakfast" | "lunch" | "dinner" | "snack" | "drink";
+type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'drink';
 
 type NutritionEntry = {
   id: number;
@@ -621,18 +621,18 @@ type CreateNutritionBody = {
   mealType: MealType;
   name: string;
   quantity: number; // > 0 y máximo 1 000 000
-  unit: string;     // máximo 50 caracteres
+  unit: string; // máximo 50 caracteres
   calories: number; // entero, 0..100 000
 };
 ```
 
-| Ruta | Entrada | Respuesta exitosa |
-| --- | --- | --- |
-| `POST /nutrition` | `CreateNutritionBody` | `201 NutritionEntry` |
-| `GET /nutrition?limit=20&cursor=...&date=YYYY-MM-DD` | filtros opcionales | `200 CursorPage<NutritionEntry>` |
-| `GET /nutrition/:id` | — | `200 NutritionEntry` |
-| `PATCH /nutrition/:id` | al menos un campo modificable | `200 NutritionEntry` |
-| `DELETE /nutrition/:id` | — | `200 { id: number }` |
+| Ruta                                                 | Entrada                       | Respuesta exitosa                |
+| ---------------------------------------------------- | ----------------------------- | -------------------------------- |
+| `POST /nutrition`                                    | `CreateNutritionBody`         | `201 NutritionEntry`             |
+| `GET /nutrition?limit=20&cursor=...&date=YYYY-MM-DD` | filtros opcionales            | `200 CursorPage<NutritionEntry>` |
+| `GET /nutrition/:id`                                 | —                             | `200 NutritionEntry`             |
+| `PATCH /nutrition/:id`                               | al menos un campo modificable | `200 NutritionEntry`             |
+| `DELETE /nutrition/:id`                              | —                             | `200 { id: number }`             |
 
 El listado usa `limit=20` por defecto, admite hasta 100 elementos por página y mantiene el filtro
 `date` asociado al cursor. `name` y `unit` se recortan y normalizan con inicial mayúscula y el resto
@@ -659,12 +659,12 @@ La API no recibe body, parámetros de ruta ni query parameters. La fecha se calc
 usando la zona horaria IANA almacenada en el usuario autenticado. El frontend no debe calcularla
 con UTC ni enviarla en la solicitud.
 
-| Ruta | Entrada | Respuesta exitosa |
-| --- | --- | --- |
+| Ruta               | Entrada                                      | Respuesta exitosa   |
+| ------------------ | -------------------------------------------- | ------------------- |
 | `GET /today/tasks` | Header `Authorization: Bearer <accessToken>` | `200 TodayResponse` |
 
 ```ts
-type TodayTaskStatus = "pending" | "in_progress" | "completed";
+type TodayTaskStatus = 'pending' | 'in_progress' | 'completed';
 
 type TodayTask = {
   id: number;
@@ -741,17 +741,17 @@ Esta estructura es interna y no se agrega a la respuesta de `GET /today/tasks`.
 
 Todas las rutas requieren autenticación.
 
-| Ruta | Entrada | Respuesta exitosa |
-| --- | --- | --- |
-| `GET /dashboard/summary?date=YYYY-MM-DD` | fecha opcional; usa hoy si se omite | `200 DashboardSummary` |
-| `GET /dashboard/insights` | — | `200 DashboardInsights` de los últimos 14 días |
-| `GET /dashboard/trends?days=30&endDate=YYYY-MM-DD` | `days?: 7..90`; `endDate` opcional | `200 DashboardTrends` |
+| Ruta                                               | Entrada                             | Respuesta exitosa                              |
+| -------------------------------------------------- | ----------------------------------- | ---------------------------------------------- |
+| `GET /dashboard/summary?date=YYYY-MM-DD`           | fecha opcional; usa hoy si se omite | `200 DashboardSummary`                         |
+| `GET /dashboard/insights`                          | —                                   | `200 DashboardInsights` de los últimos 14 días |
+| `GET /dashboard/trends?days=30&endDate=YYYY-MM-DD` | `days?: 7..90`; `endDate` opcional  | `200 DashboardTrends`                          |
 
 ```ts
 type DashboardSummary = {
   date: LocalDate;
   metricsAvailable: boolean;
-  goalsAsOf: "current";
+  goalsAsOf: 'current';
   goals: {
     total: number;
     pending: number;
@@ -788,18 +788,18 @@ type DashboardInsights = {
     reason: string;
   }>;
   alerts: Array<{
-    code: "NO_RECENT_PROGRESS" | "LOW_COMPLETION_RATE";
-    severity: "info" | "warning" | "critical";
+    code: 'NO_RECENT_PROGRESS' | 'LOW_COMPLETION_RATE';
+    severity: 'info' | 'warning' | 'critical';
     message: string;
   }>;
   trends: Array<{
-    code: "COMPLETION_UP" | "COMPLETION_DOWN" | "COMPLETION_STABLE";
-    direction: "up" | "down" | "stable";
+    code: 'COMPLETION_UP' | 'COMPLETION_DOWN' | 'COMPLETION_STABLE';
+    direction: 'up' | 'down' | 'stable';
     change: number; // porcentaje con signo
     message: string;
   }>;
   recommendations: Array<{
-    code: "START_PRIORITY_GOAL" | "REDUCE_DAILY_LOAD";
+    code: 'START_PRIORITY_GOAL' | 'REDUCE_DAILY_LOAD';
     message: string;
   }>;
 };
@@ -852,28 +852,21 @@ todavía no existe. Los snapshots históricos faltantes no se crean automáticam
 
 Todas las rutas requieren autenticación.
 
-| Ruta | Body | Respuesta exitosa |
-| --- | --- | --- |
-| `POST /ai/improve-journal` | `{ field, text }` | `{ field, text }` |
-| `POST /ai/improve-goal` | `{ field, text }` | `{ field, text }` |
-| `POST /ai/estimate-calories` | `{ name, quantity, unit, mealType? }` | `{ calories }` |
+| Ruta                         | Body                                  | Respuesta exitosa |
+| ---------------------------- | ------------------------------------- | ----------------- |
+| `POST /ai/improve-journal`   | `{ field, text }`                     | `{ field, text }` |
+| `POST /ai/improve-goal`      | `{ field, text }`                     | `{ field, text }` |
+| `POST /ai/estimate-calories` | `{ name, quantity, unit, mealType? }` | `{ calories }`    |
 
 ```ts
-type JournalAiField =
-  | "title"
-  | "content"
-  | "gratitude"
-  | "wins"
-  | "lessons"
-  | "problems"
-  | "ideas";
+type JournalAiField = 'title' | 'content' | 'gratitude' | 'wins' | 'lessons' | 'problems' | 'ideas';
 
 type ImproveJournalBody = {
   field: JournalAiField;
   text: string; // no vacío, máximo 2000 caracteres
 };
 
-type GoalAiField = "title" | "motivation";
+type GoalAiField = 'title' | 'motivation';
 
 type ImproveGoalBody = {
   field: GoalAiField;
@@ -881,9 +874,9 @@ type ImproveGoalBody = {
 };
 
 type EstimateCaloriesBody = {
-  name: string;     // no vacío, máximo 200 caracteres
+  name: string; // no vacío, máximo 200 caracteres
   quantity: number; // > 0 y máximo 1 000 000
-  unit: string;     // obligatorio, máximo 50 caracteres
+  unit: string; // obligatorio, máximo 50 caracteres
   mealType?: string; // máximo 50 caracteres
 };
 ```
@@ -933,7 +926,7 @@ type AdminStats = {
     admins: number;
   };
   activity: {
-    period: "last_30_days";
+    period: 'last_30_days';
     goals: number; // metas creadas en el periodo
     tasks: number; // tareas creadas en el periodo
     taskExecution: {
@@ -962,16 +955,16 @@ type AdminStats = {
 };
 ```
 
-| Ruta | Entrada | Respuesta exitosa |
-| --- | --- | --- |
-| `GET /admin/stats` | — | estadísticas de usuarios, actividad, sistema y usuarios destacados |
-| `GET /admin/users?limit=20&cursor=...` | filtros opcionales | `200 CursorPage<AdminUser>` |
-| `GET /admin/users/pending?limit=20&cursor=...` | filtros opcionales | `200 CursorPage<AdminUser>` |
-| `POST /admin/users/:id/approve` | — | `200 AdminUser` |
-| `POST /admin/users/:id/reject` | — | `200 { id: number }` |
-| `PATCH /admin/users/:id/admin` | `{ isAdmin: boolean }` | `200 AdminUser` |
-| `GET /admin/users/:id/sessions` | — | `200 ActiveSession[]` |
-| `DELETE /admin/users/:id/sessions` | — | `200 { status: "sessions_revoked" }` |
+| Ruta                                           | Entrada                | Respuesta exitosa                                                  |
+| ---------------------------------------------- | ---------------------- | ------------------------------------------------------------------ |
+| `GET /admin/stats`                             | —                      | estadísticas de usuarios, actividad, sistema y usuarios destacados |
+| `GET /admin/users?limit=20&cursor=...`         | filtros opcionales     | `200 CursorPage<AdminUser>`                                        |
+| `GET /admin/users/pending?limit=20&cursor=...` | filtros opcionales     | `200 CursorPage<AdminUser>`                                        |
+| `POST /admin/users/:id/approve`                | —                      | `200 AdminUser`                                                    |
+| `POST /admin/users/:id/reject`                 | —                      | `200 { id: number }`                                               |
+| `PATCH /admin/users/:id/admin`                 | `{ isAdmin: boolean }` | `200 AdminUser`                                                    |
+| `GET /admin/users/:id/sessions`                | —                      | `200 ActiveSession[]`                                              |
+| `DELETE /admin/users/:id/sessions`             | —                      | `200 { status: "sessions_revoked" }`                               |
 
 La revocación administrativa elimina los resultados de replay, revoca todos los
 refresh tokens e incrementa `tokenVersion` en una transacción. Los access JWT ya
@@ -1012,7 +1005,7 @@ type HealthResponse = {
 10. Aunque la API tolera renovaciones concurrentes, compartir una única promesa de refresh entre
     solicitudes y pestañas reduce tráfico y evita alcanzar el rate limit.
 11. Si `/auth/refresh` responde `INVALID_REFRESH_TOKEN` o `REFRESH_TOKEN_REUSE`, eliminar las
-   credenciales locales y solicitar un nuevo login; no reintentar con el mismo token.
+    credenciales locales y solicitar un nuevo login; no reintentar con el mismo token.
 12. Si responde `INVALID_IDEMPOTENCY_KEY`, corregir la derivación y repetir sólo si el token todavía
     es el token activo almacenado; no inventar una clave distinta.
 13. En Next.js usar `cache: "no-store"` al llamar a login y refresh. La API también envía

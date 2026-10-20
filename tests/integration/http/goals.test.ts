@@ -18,11 +18,17 @@ describe('HTTP goals', () => {
   test.serial('creates a goal with normalized input and the JWT user ID', async () => {
     const token = await issueAccessToken(17);
     const create = spyOn(GoalsService, 'create').mockResolvedValue(goalFixture);
-    const response = await app.handle(jsonRequest('/goals/', {
-      ...createGoalBody,
-      title: '  Run a marathon  ',
-      motivation: '  Improve my health  ',
-    }, { headers: bearer(token) }));
+    const response = await app.handle(
+      jsonRequest(
+        '/goals/',
+        {
+          ...createGoalBody,
+          title: '  Run a marathon  ',
+          motivation: '  Improve my health  ',
+        },
+        { headers: bearer(token) },
+      ),
+    );
 
     expect(response.status).toBe(201);
     expect(create).toHaveBeenCalledWith(17, createGoalBody);
@@ -34,11 +40,9 @@ describe('HTTP goals', () => {
     spyOn(GoalsService, 'create').mockRejectedValue(
       new ApiError(409, 'Conflicto de prueba', 'GOAL_CONFLICT'),
     );
-    const response = await app.handle(jsonRequest(
-      '/goals/',
-      createGoalBody,
-      { headers: bearer(token) },
-    ));
+    const response = await app.handle(
+      jsonRequest('/goals/', createGoalBody, { headers: bearer(token) }),
+    );
 
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({
@@ -46,4 +50,3 @@ describe('HTTP goals', () => {
     });
   });
 });
-

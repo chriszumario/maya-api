@@ -20,8 +20,7 @@ export const journal = new Elysia({
         description: 'Crea una nueva entrada; un día puede tener múltiples entradas.',
       },
     },
-    async ({ body, userId, status }) =>
-      status(201, await JournalService.create(userId, body))
+    async ({ body, userId, status }) => status(201, await JournalService.create(userId, body)),
   )
   .get(
     '/',
@@ -33,7 +32,7 @@ export const journal = new Elysia({
         description: 'Respuesta: { items, nextCursor }.',
       },
     },
-    ({ query, userId }) => JournalService.list(userId, query.limit, query.cursor)
+    ({ query, userId }) => JournalService.list(userId, query.limit, query.cursor),
   )
   .get(
     '/:id',
@@ -42,7 +41,7 @@ export const journal = new Elysia({
       response: { 200: JournalModel.response },
       detail: { summary: 'Detalle de entrada' },
     },
-    ({ params, userId }) => JournalService.getById(userId, params.id)
+    ({ params, userId }) => JournalService.getById(userId, params.id),
   )
   .patch(
     '/:id',
@@ -52,7 +51,7 @@ export const journal = new Elysia({
       response: { 200: JournalModel.response },
       detail: { summary: 'Actualizar entrada' },
     },
-    ({ params, body, userId }) => JournalService.update(userId, params.id, body)
+    ({ params, body, userId }) => JournalService.update(userId, params.id, body),
   )
   .delete(
     '/:id',
@@ -61,5 +60,5 @@ export const journal = new Elysia({
       response: { 200: JournalModel.deletedResponse },
       detail: { summary: 'Eliminar entrada' },
     },
-    ({ params, userId }) => JournalService.delete(userId, params.id)
+    ({ params, userId }) => JournalService.delete(userId, params.id),
   );

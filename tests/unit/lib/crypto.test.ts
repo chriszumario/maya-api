@@ -51,15 +51,22 @@ describe('security utilities', () => {
   });
 
   test('creates UUIDv7 session family IDs', () => {
-    expect(newSessionId()).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+    expect(newSessionId()).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
   });
 
   test('authenticates the cached token version and rejects invalid metadata', async () => {
     const result = { accessToken: 'access', refreshToken: 'refresh', tokenVersion: 2 };
     const ciphertext = await encryptRefreshRotationResult(result, 'rotation:version');
     expect(await decryptRefreshRotationResult(ciphertext, 'rotation:version')).toEqual(result);
-    const invalid = await encryptRefreshRotationResult({ ...result, tokenVersion: -1 }, 'rotation:version');
-    await expect(decryptRefreshRotationResult(invalid, 'rotation:version')).rejects.toThrow('Invalid refresh rotation version');
+    const invalid = await encryptRefreshRotationResult(
+      { ...result, tokenVersion: -1 },
+      'rotation:version',
+    );
+    await expect(decryptRefreshRotationResult(invalid, 'rotation:version')).rejects.toThrow(
+      'Invalid refresh rotation version',
+    );
   });
 
   test('hashes and verifies passwords', async () => {

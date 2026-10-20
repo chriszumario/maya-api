@@ -16,16 +16,19 @@ const JOURNAL_INSTRUCTIONS: Record<AiModel['improveJournal']['field'], string> =
   ideas: 'Organiza la idea para que sea clara y fácil de entender.',
 };
 const GOAL_INSTRUCTIONS: Record<AiModel['improveGoal']['field'], string> = {
-  title: 'Exprésalo como una meta clara y concreta, comienza con un verbo en infinitivo y no uses punto final.',
-  motivation: 'Mejora la motivación en primera persona, con un tono claro y convincente, y termina con punto.',
+  title:
+    'Exprésalo como una meta clara y concreta, comienza con un verbo en infinitivo y no uses punto final.',
+  motivation:
+    'Mejora la motivación en primera persona, con un tono claro y convincente, y termina con punto.',
 };
 
-const textSchema = (minLength: number, maxLength: number) => ({
-  type: 'object',
-  properties: { text: { type: 'string', minLength, maxLength } },
-  required: ['text'],
-  additionalProperties: false,
-} as const);
+const textSchema = (minLength: number, maxLength: number) =>
+  ({
+    type: 'object',
+    properties: { text: { type: 'string', minLength, maxLength } },
+    required: ['text'],
+    additionalProperties: false,
+  }) as const;
 
 const caloriesSchema = {
   type: 'object',
@@ -46,7 +49,7 @@ export abstract class AiService {
       input.text,
       'journal_text',
       textSchema(input.field === 'title' ? 1 : 0, maxLength),
-      (value) => v.parse(AiModel.improvedJournal, withField(value, input.field))
+      (value) => v.parse(AiModel.improvedJournal, withField(value, input.field)),
     );
   }
 
@@ -57,7 +60,7 @@ export abstract class AiService {
       input.text,
       'goal_text',
       textSchema(3, maxLength),
-      (value) => v.parse(AiModel.improvedGoal, withField(value, input.field))
+      (value) => v.parse(AiModel.improvedGoal, withField(value, input.field)),
     );
   }
 
@@ -72,7 +75,7 @@ export abstract class AiService {
       'calorie_estimate',
       caloriesSchema,
       (value) => v.parse(AiModel.calories, value),
-      150
+      150,
     );
   }
 
@@ -82,7 +85,7 @@ export abstract class AiService {
     name: string,
     schema: Record<string, unknown>,
     validate: (value: unknown) => T,
-    maxTokens = 600
+    maxTokens = 600,
   ): Promise<T> {
     if (!env.GROQ_API_KEY) {
       throw new ApiError(503, 'IA no configurada. Define GROQ_API_KEY.', 'AI_NOT_CONFIGURED');
@@ -106,7 +109,7 @@ export abstract class AiService {
             { role: 'user', content: user },
           ],
         },
-        { signal: AbortSignal.timeout(AI_TIMEOUT_MS) }
+        { signal: AbortSignal.timeout(AI_TIMEOUT_MS) },
       );
 
       const content = response.choices[0]?.message?.content;
@@ -129,7 +132,5 @@ export abstract class AiService {
 }
 
 function withField(value: unknown, field: string) {
-  return typeof value === 'object' && value !== null
-    ? { ...value, field }
-    : { field };
+  return typeof value === 'object' && value !== null ? { ...value, field } : { field };
 }

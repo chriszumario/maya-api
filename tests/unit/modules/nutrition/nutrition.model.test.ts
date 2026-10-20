@@ -5,11 +5,13 @@ import { NutritionModel } from '@/modules/nutrition/nutrition.model';
 describe('NutritionModel text normalization', () => {
   test('exposes cursor pagination with bounded limits', () => {
     expect(v.parse(NutritionModel.listQuery, {})).toEqual({ limit: 20 });
-    expect(v.parse(NutritionModel.listQuery, {
-      date: '2026-09-05',
-      limit: '100',
-      cursor: 'next-page',
-    })).toEqual({ date: '2026-09-05', limit: 100, cursor: 'next-page' });
+    expect(
+      v.parse(NutritionModel.listQuery, {
+        date: '2026-09-05',
+        limit: '100',
+        cursor: 'next-page',
+      }),
+    ).toEqual({ date: '2026-09-05', limit: 100, cursor: 'next-page' });
     expect(v.safeParse(NutritionModel.listQuery, { limit: '101' }).success).toBe(false);
   });
 
@@ -37,13 +39,7 @@ describe('NutritionModel text normalization', () => {
       calories: 320,
     };
 
-    for (const field of [
-      'mealType',
-      'name',
-      'quantity',
-      'unit',
-      'calories',
-    ] as const) {
+    for (const field of ['mealType', 'name', 'quantity', 'unit', 'calories'] as const) {
       const { [field]: _, ...missingField } = base;
       expect(v.safeParse(NutritionModel.create, missingField).success).toBe(false);
       expect(v.safeParse(NutritionModel.create, { ...base, [field]: null }).success).toBe(false);

@@ -50,17 +50,19 @@ export abstract class GoalsService {
   static async list(userId: number, limit: number, cursor?: string) {
     const context = { scope: 'goals' } as const;
     const decoded = cursor ? decodeStringIdCursor(cursor, context) : null;
-    if (cursor && !decoded) throw new ApiError(400, 'Cursor de paginación inválido', 'INVALID_CURSOR');
+    if (cursor && !decoded)
+      throw new ApiError(400, 'Cursor de paginación inválido', 'INVALID_CURSOR');
     const rows = await db
       .select()
       .from(goals)
-      .where(and(
-        eq(goals.userId, userId),
-        decoded ? beforeStringIdCursor(
-          { value: goals.createdAt, id: goals.id },
-          decoded,
-        ) : undefined,
-      ))
+      .where(
+        and(
+          eq(goals.userId, userId),
+          decoded
+            ? beforeStringIdCursor({ value: goals.createdAt, id: goals.id }, decoded)
+            : undefined,
+        ),
+      )
       .orderBy(desc(goals.createdAt), desc(goals.id))
       .limit(limit + 1);
     return toStringIdCursorPage(rows, limit, (row) => row.createdAt, context);
@@ -89,17 +91,19 @@ export abstract class GoalsService {
     await requireOwnedGoal(userId, goalId);
     const context = { scope: 'goal-reviews', filter: String(goalId) } as const;
     const decoded = cursor ? decodeDateIdCursor(cursor, context) : null;
-    if (cursor && !decoded) throw new ApiError(400, 'Cursor de paginación inválido', 'INVALID_CURSOR');
+    if (cursor && !decoded)
+      throw new ApiError(400, 'Cursor de paginación inválido', 'INVALID_CURSOR');
     const rows = await db
       .select()
       .from(goalReviews)
-      .where(and(
-        eq(goalReviews.goalId, goalId),
-        decoded ? beforeDateIdCursor(
-          { localDate: goalReviews.localDate, id: goalReviews.id },
-          decoded,
-        ) : undefined,
-      ))
+      .where(
+        and(
+          eq(goalReviews.goalId, goalId),
+          decoded
+            ? beforeDateIdCursor({ localDate: goalReviews.localDate, id: goalReviews.id }, decoded)
+            : undefined,
+        ),
+      )
       .orderBy(desc(goalReviews.localDate), desc(goalReviews.id))
       .limit(limit + 1);
     return toDateIdCursorPage(rows, limit, context);
@@ -108,22 +112,17 @@ export abstract class GoalsService {
   static async update(userId: number, goalId: number, data: UpdateGoalDTO) {
     const existing = await this.getOwned(userId, goalId);
 
-    if (
-      TERMINAL.has(existing.status) &&
-      data.status &&
-      data.status !== existing.status
-    ) {
+    if (TERMINAL.has(existing.status) && data.status && data.status !== existing.status) {
       throw new ApiError(
         409,
         'No se puede cambiar el estado de una meta ya completada o cancelada',
-        'GOAL_TERMINAL'
+        'GOAL_TERMINAL',
       );
     }
 
     const nextStatus = data.status;
     const statusChanged = nextStatus !== undefined && nextStatus !== existing.status;
-    const deactivateTasks =
-      nextStatus !== undefined && statusChanged && TERMINAL.has(nextStatus);
+    const deactivateTasks = nextStatus !== undefined && statusChanged && TERMINAL.has(nextStatus);
     const lifecyclePatch: { startDate?: string; endedAt?: string } = {};
     const localDate = statusChanged ? await getUserLocalDate(userId) : undefined;
 
@@ -143,24 +142,23 @@ export abstract class GoalsService {
       const [goal] = await tx
         .update(goals)
         .set(patch)
-        .where(and(
-          eq(goals.id, goalId),
-          eq(goals.userId, userId),
-          eq(goals.title, existing.title),
-          eq(goals.motivation, existing.motivation),
-          eq(goals.category, existing.category),
-          eq(goals.priority, existing.priority),
-          eq(goals.status, existing.status),
-          equalNullable(goals.startDate, existing.startDate),
-          equalNullable(goals.endedAt, existing.endedAt),
-        ))
+        .where(
+          and(
+            eq(goals.id, goalId),
+            eq(goals.userId, userId),
+            eq(goals.title, existing.title),
+            eq(goals.motivation, existing.motivation),
+            eq(goals.category, existing.category),
+            eq(goals.priority, existing.priority),
+            eq(goals.status, existing.status),
+            equalNullable(goals.startDate, existing.startDate),
+            equalNullable(goals.endedAt, existing.endedAt),
+          ),
+        )
         .returning();
 
       if (goal && deactivateTasks) {
-        await tx
-          .update(tasks)
-          .set({ isActive: false })
-          .where(eq(tasks.goalId, goalId));
+        await tx.update(tasks).set({ isActive: false }).where(eq(tasks.goalId, goalId));
       }
 
       if (goal && statusChanged) {
@@ -173,7 +171,11 @@ export abstract class GoalsService {
     if (!updated) {
       const current = await this.getOwned(userId, goalId);
       if (TERMINAL.has(current.status) && current.status !== data.status) {
-        throw new ApiError(409, 'No se puede cambiar el estado de una meta ya completada o cancelada', 'GOAL_TERMINAL');
+        throw new ApiError(
+          409,
+          'No se puede cambiar el estado de una meta ya completada o cancelada',
+          'GOAL_TERMINAL',
+        );
       }
       throw new ApiError(409, 'La meta cambió mientras se actualizaba', 'GOAL_UPDATE_CONFLICT');
     }
@@ -189,17 +191,19 @@ export abstract class GoalsService {
     const deleted = await db.transaction(async (tx) => {
       const [row] = await tx
         .delete(goals)
-        .where(and(
-          eq(goals.id, goalId),
-          eq(goals.userId, userId),
-          eq(goals.title, existing.title),
-          eq(goals.motivation, existing.motivation),
-          eq(goals.category, existing.category),
-          eq(goals.priority, existing.priority),
-          eq(goals.status, existing.status),
-          equalNullable(goals.startDate, existing.startDate),
-          equalNullable(goals.endedAt, existing.endedAt),
-        ))
+        .where(
+          and(
+            eq(goals.id, goalId),
+            eq(goals.userId, userId),
+            eq(goals.title, existing.title),
+            eq(goals.motivation, existing.motivation),
+            eq(goals.category, existing.category),
+            eq(goals.priority, existing.priority),
+            eq(goals.status, existing.status),
+            equalNullable(goals.startDate, existing.startDate),
+            equalNullable(goals.endedAt, existing.endedAt),
+          ),
+        )
         .returning({ id: goals.id });
       if (row) await DailyMetricsService.rebuild(userId, localDate, tx);
       return row;
@@ -212,11 +216,7 @@ export abstract class GoalsService {
     return deleted;
   }
 
-  static async createReview(
-    userId: number,
-    goalId: number,
-    data: CreateReviewDTO
-  ) {
+  static async createReview(userId: number, goalId: number, data: CreateReviewDTO) {
     const [owned, localDate] = await Promise.all([
       requireOwnedGoal(userId, goalId),
       getUserLocalDate(userId),

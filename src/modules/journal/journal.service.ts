@@ -49,10 +49,7 @@ export abstract class JournalService {
       }
       where = and(
         where,
-        beforeDateIdCursor(
-          { localDate: journalEntries.localDate, id: journalEntries.id },
-          decoded
-        )
+        beforeDateIdCursor({ localDate: journalEntries.localDate, id: journalEntries.id }, decoded),
       )!;
     }
 
@@ -70,9 +67,7 @@ export abstract class JournalService {
     const [updated] = await db
       .update(journalEntries)
       .set(data)
-      .where(
-        and(eq(journalEntries.id, entryId), eq(journalEntries.userId, userId))
-      )
+      .where(and(eq(journalEntries.id, entryId), eq(journalEntries.userId, userId)))
       .returning();
 
     if (!updated) {
@@ -85,9 +80,7 @@ export abstract class JournalService {
   static async delete(userId: number, entryId: number) {
     const [deleted] = await db
       .delete(journalEntries)
-      .where(
-        and(eq(journalEntries.id, entryId), eq(journalEntries.userId, userId))
-      )
+      .where(and(eq(journalEntries.id, entryId), eq(journalEntries.userId, userId)))
       .returning({ id: journalEntries.id });
 
     if (!deleted) {

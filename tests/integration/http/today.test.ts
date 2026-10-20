@@ -23,9 +23,11 @@ describe('HTTP today', () => {
   test.serial('uses the JWT user and disables shared caching', async () => {
     const token = await issueAccessToken(17);
     const getToday = spyOn(TodayService, 'getToday').mockResolvedValue(emptyToday);
-    const response = await app.handle(new Request('http://localhost/today/tasks', {
-      headers: bearer(token),
-    }));
+    const response = await app.handle(
+      new Request('http://localhost/today/tasks', {
+        headers: bearer(token),
+      }),
+    );
 
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toBe('private, no-store');

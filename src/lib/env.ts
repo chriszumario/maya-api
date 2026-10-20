@@ -2,7 +2,6 @@ import * as v from 'valibot';
 import { isValidTimeZone } from './date';
 import packageJson from '../../package.json' with { type: 'json' };
 
-
 export const APP_VERSION = packageJson.version;
 
 const KNOWN_JWT_PLACEHOLDERS = new Set([
@@ -13,9 +12,11 @@ const KNOWN_JWT_PLACEHOLDERS = new Set([
 
 function isReasonableJwtSecret(value: string): boolean {
   if (KNOWN_JWT_PLACEHOLDERS.has(value.toLowerCase())) return false;
-  return /^[\x21-\x7e]+$/.test(value)
-    && new Set(value).size >= 10
-    && !/(?:change|replace)[-_ ]?me|placeholder/i.test(value);
+  return (
+    /^[\x21-\x7e]+$/.test(value) &&
+    new Set(value).size >= 10 &&
+    !/(?:change|replace)[-_ ]?me|placeholder/i.test(value)
+  );
 }
 
 const EnvSchema = v.object({
@@ -39,31 +40,43 @@ const EnvSchema = v.object({
   TURSO_AUTH_TOKEN: v.pipe(v.string(), v.nonEmpty()),
   PORT: v.optional(
     v.pipe(v.string(), v.toNumber(), v.safeInteger(), v.minValue(1), v.maxValue(65535)),
-    '4000'
+    '4000',
   ),
   MAX_REQUEST_BODY_BYTES: v.optional(
     v.pipe(v.string(), v.toNumber(), v.safeInteger(), v.minValue(1_024), v.maxValue(10_000_000)),
-    '1048576'
+    '1048576',
   ),
   ALLOWED_ORIGINS: v.optional(
     v.pipe(
       v.string(),
-      v.transform((value) => value.split(',').map((origin) => origin.trim()).filter(Boolean)),
-      v.check((origins) => origins.length > 0 && origins.every((origin) => {
-        const url = URL.parse(origin);
-        return url !== null
-          && (url.protocol === 'https:' || url.protocol === 'http:')
-          && url.origin === origin;
-      }), 'debe contener orígenes HTTP(S) completos, sin rutas ni comodines'),
+      v.transform((value) =>
+        value
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter(Boolean),
+      ),
+      v.check(
+        (origins) =>
+          origins.length > 0 &&
+          origins.every((origin) => {
+            const url = URL.parse(origin);
+            return (
+              url !== null &&
+              (url.protocol === 'https:' || url.protocol === 'http:') &&
+              url.origin === origin
+            );
+          }),
+        'debe contener orígenes HTTP(S) completos, sin rutas ni comodines',
+      ),
     ),
-    'http://localhost:3000'
+    'http://localhost:3000',
   ),
   GROQ_API_KEY: v.optional(v.pipe(v.string(), v.nonEmpty())),
 });
 
 function readProcessEnv(): Record<string, string | undefined> {
   return Object.fromEntries(
-    Object.entries(Bun.env).map(([key, value]) => [key, value?.trim() || undefined])
+    Object.entries(Bun.env).map(([key, value]) => [key, value?.trim() || undefined]),
   );
 }
 
@@ -74,7 +87,9 @@ function loadEnv() {
   const result = v.safeParse(EnvSchema, readProcessEnv());
   if (!result.success) {
     const details = result.issues
-      .map((issue) => `  - ${issue.path?.map((p) => p.key).join('.') || '(root)'}: ${issue.message}`)
+      .map(
+        (issue) => `  - ${issue.path?.map((p) => p.key).join('.') || '(root)'}: ${issue.message}`,
+      )
       .join('\n');
     throw new Error(`Variables de entorno inválidas o incompletas:\n${details}`);
   }

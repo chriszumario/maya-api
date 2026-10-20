@@ -48,8 +48,14 @@ describe('DailyMetricsService persistence', () => {
     const localDb = drizzle({ client: sqlite });
 
     await DailyMetricsService.rebuild(1, '2026-09-05', localDb as never);
-    expect(sqlite.query(`select plannedTasksCount, pendingTasksCount, completedTasksCount
-      from daily_user_metrics`).get()).toEqual({
+    expect(
+      sqlite
+        .query(
+          `select plannedTasksCount, pendingTasksCount, completedTasksCount
+      from daily_user_metrics`,
+        )
+        .get(),
+    ).toEqual({
       plannedTasksCount: 1,
       pendingTasksCount: 1,
       completedTasksCount: 0,
@@ -58,16 +64,28 @@ describe('DailyMetricsService persistence', () => {
     sqlite.exec(`insert into task_logs (taskId, localDate, status, durationMinutes)
       values (1, '2026-09-05', 'completed', 27)`);
     await DailyMetricsService.rebuild(1, '2026-09-05', localDb as never);
-    expect(sqlite.query(`select pendingTasksCount, completedTasksCount, completedMinutes
-      from daily_user_metrics`).get()).toEqual({
+    expect(
+      sqlite
+        .query(
+          `select pendingTasksCount, completedTasksCount, completedMinutes
+      from daily_user_metrics`,
+        )
+        .get(),
+    ).toEqual({
       pendingTasksCount: 0,
       completedTasksCount: 1,
       completedMinutes: 27,
     });
 
     await DailyMetricsService.rebuild(1, '2026-09-06', localDb as never);
-    expect(sqlite.query(`select plannedTasksCount, plannedMinutes from daily_user_metrics
-      where localDate = '2026-09-06'`).get()).toEqual({
+    expect(
+      sqlite
+        .query(
+          `select plannedTasksCount, plannedMinutes from daily_user_metrics
+      where localDate = '2026-09-06'`,
+        )
+        .get(),
+    ).toEqual({
       plannedTasksCount: 2,
       plannedMinutes: 50,
     });

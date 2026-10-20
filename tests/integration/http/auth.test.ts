@@ -14,28 +14,34 @@ import { bearer, issueAccessToken, jsonRequest } from '../../helpers/http';
 afterEach(() => mock.restore());
 
 describe('HTTP authentication and authorization', () => {
-  test.serial('rejects signed tokens with missing expiration or invalid identity claims before querying users', async () => {
-    const lookup = spyOn(db.query.users, 'findFirst');
-    for (const claims of [
-      { userId: 17, tokenVersion: 0 },
-      { userId: 0, tokenVersion: 0, exp: '30m' },
-      { userId: 17, tokenVersion: -1, exp: '30m' },
-      { userId: Number.MAX_SAFE_INTEGER + 1, tokenVersion: 0, exp: '30m' },
-      { userId: 17, tokenVersion: 0, exp: 1 },
-    ]) {
-      const signer = new Elysia().use(jwt({ secret: env.JWT_SECRET }))
-        .get('/', ({ jwt }) => jwt.sign(claims));
-      const token = await (await signer.handle(new Request('http://localhost/'))).text();
-      const response = await app.handle(new Request('http://localhost/auth/me', {
-        headers: bearer(token),
-      }));
-      expect(response.status).toBe(401);
-      expect(await response.json()).toEqual({
-        error: { code: 'INVALID_TOKEN', message: 'Token inválido o expirado' },
-      });
-    }
-    expect(lookup).not.toHaveBeenCalled();
-  });
+  test.serial(
+    'rejects signed tokens with missing expiration or invalid identity claims before querying users',
+    async () => {
+      const lookup = spyOn(db.query.users, 'findFirst');
+      for (const claims of [
+        { userId: 17, tokenVersion: 0 },
+        { userId: 0, tokenVersion: 0, exp: '30m' },
+        { userId: 17, tokenVersion: -1, exp: '30m' },
+        { userId: Number.MAX_SAFE_INTEGER + 1, tokenVersion: 0, exp: '30m' },
+        { userId: 17, tokenVersion: 0, exp: 1 },
+      ]) {
+        const signer = new Elysia()
+          .use(jwt({ secret: env.JWT_SECRET }))
+          .get('/', ({ jwt }) => jwt.sign(claims));
+        const token = await (await signer.handle(new Request('http://localhost/'))).text();
+        const response = await app.handle(
+          new Request('http://localhost/auth/me', {
+            headers: bearer(token),
+          }),
+        );
+        expect(response.status).toBe(401);
+        expect(await response.json()).toEqual({
+          error: { code: 'INVALID_TOKEN', message: 'Token inválido o expirado' },
+        });
+      }
+      expect(lookup).not.toHaveBeenCalled();
+    },
+  );
 
   test.serial('normalizes login input and returns an access token', async () => {
     const login = spyOn(AuthService, 'login').mockResolvedValue({
@@ -49,11 +55,13 @@ describe('HTTP authentication and authorization', () => {
       refreshToken: 'refresh-token-value-with-at-least-32-characters',
       tokenVersion: 0,
     });
-    const response = await app.handle(jsonRequest('/auth/login', {
-      email: '  ANA@EXAMPLE.COM ',
-      password: 'secret-password',
-    }));
-    const body = await response.json() as Record<string, unknown>;
+    const response = await app.handle(
+      jsonRequest('/auth/login', {
+        email: '  ANA@EXAMPLE.COM ',
+        password: 'secret-password',
+      }),
+    );
+    const body = (await response.json()) as Record<string, unknown>;
 
     expect(response.status).toBe(200);
     expect(login).toHaveBeenCalledWith({
@@ -73,21 +81,21 @@ describe('HTTP authentication and authorization', () => {
       accessToken: 'persisted-access-token',
       refreshToken: 'rotated-refresh-token-value-with-at-least-32-characters',
     });
-    const response = await app.handle(jsonRequest('/auth/refresh', {
-      refreshToken: currentRefreshToken,
-    }, { headers: { 'idempotency-key': idempotencyKey } }));
-    const body = await response.json() as Record<string, unknown>;
+    const response = await app.handle(
+      jsonRequest(
+        '/auth/refresh',
+        {
+          refreshToken: currentRefreshToken,
+        },
+        { headers: { 'idempotency-key': idempotencyKey } },
+      ),
+    );
+    const body = (await response.json()) as Record<string, unknown>;
 
     expect(response.status).toBe(200);
-    expect(rotate).toHaveBeenCalledWith(
-      currentRefreshToken,
-      idempotencyKey,
-      expect.any(Function),
-    );
+    expect(rotate).toHaveBeenCalledWith(currentRefreshToken, idempotencyKey, expect.any(Function));
     expect(body.accessToken).toBe('persisted-access-token');
-    expect(body.refreshToken).toBe(
-      'rotated-refresh-token-value-with-at-least-32-characters',
-    );
+    expect(body.refreshToken).toBe('rotated-refresh-token-value-with-at-least-32-characters');
     expect(response.headers.get('cache-control')).toBe('private, no-store');
     expect(response.headers.get('pragma')).toBeNull();
   });
@@ -96,9 +104,11 @@ describe('HTTP authentication and authorization', () => {
     const rotate = spyOn(RefreshTokenService, 'rotate').mockRejectedValue(
       new ApiError(400, 'Idempotency-Key inválida o ausente', 'INVALID_IDEMPOTENCY_KEY'),
     );
-    const response = await app.handle(jsonRequest('/auth/refresh', {
-      refreshToken: 'current-refresh-token-value-with-at-least-32-characters',
-    }));
+    const response = await app.handle(
+      jsonRequest('/auth/refresh', {
+        refreshToken: 'current-refresh-token-value-with-at-least-32-characters',
+      }),
+    );
 
     expect(response.status).toBe(400);
     expect(rotate.mock.calls[0]?.[1]).toBeUndefined();
@@ -132,9 +142,11 @@ describe('HTTP authentication and authorization', () => {
       timezone: 'America/La_Paz',
     };
     const getUser = spyOn(AuthService, 'getUserById').mockResolvedValue(user);
-    const response = await app.handle(new Request('http://localhost/auth/me', {
-      headers: bearer(token),
-    }));
+    const response = await app.handle(
+      new Request('http://localhost/auth/me', {
+        headers: bearer(token),
+      }),
+    );
 
     expect(response.status).toBe(200);
     expect(getUser).toHaveBeenCalledWith(17);
@@ -157,9 +169,11 @@ describe('HTTP authentication and authorization', () => {
     });
     const getUser = spyOn(AuthService, 'getUserById');
 
-    const response = await app.handle(new Request('http://localhost/auth/me', {
-      headers: bearer(token),
-    }));
+    const response = await app.handle(
+      new Request('http://localhost/auth/me', {
+        headers: bearer(token),
+      }),
+    );
 
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({
@@ -172,9 +186,11 @@ describe('HTTP authentication and authorization', () => {
     const token = await issueAccessToken(17);
     spyOn(db.query.users, 'findFirst').mockResolvedValue(undefined);
 
-    const response = await app.handle(new Request('http://localhost/auth/me', {
-      headers: bearer(token),
-    }));
+    const response = await app.handle(
+      new Request('http://localhost/auth/me', {
+        headers: bearer(token),
+      }),
+    );
 
     expect(response.status).toBe(401);
   });
@@ -194,9 +210,11 @@ describe('HTTP authentication and authorization', () => {
       updatedAt: '2026-08-23 12:00:00',
     });
 
-    const response = await app.handle(new Request('http://localhost/auth/me', {
-      headers: bearer(token),
-    }));
+    const response = await app.handle(
+      new Request('http://localhost/auth/me', {
+        headers: bearer(token),
+      }),
+    );
 
     expect(response.status).toBe(401);
     expect(response.headers.get('cache-control')).toBe('private, no-store');
@@ -217,9 +235,11 @@ describe('HTTP authentication and authorization', () => {
       updatedAt: '2026-08-23 12:00:00',
     });
     const listUsers = spyOn(AdminService, 'listUsers');
-    const response = await app.handle(new Request('http://localhost/admin/users', {
-      headers: bearer(token),
-    }));
+    const response = await app.handle(
+      new Request('http://localhost/admin/users', {
+        headers: bearer(token),
+      }),
+    );
 
     expect(response.status).toBe(403);
     expect(lookup).toHaveBeenCalledTimes(1);

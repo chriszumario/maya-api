@@ -4,30 +4,40 @@ import { AiModel } from '@/modules/ai/ai.model';
 
 describe('AiModel', () => {
   test('validates one goal field per improvement request', () => {
-    expect(v.parse(AiModel.improveGoal, {
-      field: 'title',
-      text: '  correr una maratón  ',
-    })).toEqual({ field: 'title', text: 'correr una maratón' });
+    expect(
+      v.parse(AiModel.improveGoal, {
+        field: 'title',
+        text: '  correr una maratón  ',
+      }),
+    ).toEqual({ field: 'title', text: 'correr una maratón' });
 
-    expect(v.safeParse(AiModel.improveGoal, {
-      field: 'category',
-      text: 'Crecimiento',
-    }).success).toBe(false);
-    expect(v.safeParse(AiModel.improveGoal, {
-      field: 'motivation',
-      text: '   ',
-    }).success).toBe(false);
+    expect(
+      v.safeParse(AiModel.improveGoal, {
+        field: 'category',
+        text: 'Crecimiento',
+      }).success,
+    ).toBe(false);
+    expect(
+      v.safeParse(AiModel.improveGoal, {
+        field: 'motivation',
+        text: '   ',
+      }).success,
+    ).toBe(false);
   });
 
   test('validates the improved goal response', () => {
-    expect(v.parse(AiModel.improvedGoal, {
-      field: 'motivation',
-      text: 'Quiero mejorar mi salud.',
-    })).toEqual({ field: 'motivation', text: 'Quiero mejorar mi salud.' });
-    expect(v.safeParse(AiModel.improvedGoal, {
-      field: 'title',
-      text: 'x'.repeat(201),
-    }).success).toBe(false);
+    expect(
+      v.parse(AiModel.improvedGoal, {
+        field: 'motivation',
+        text: 'Quiero mejorar mi salud.',
+      }),
+    ).toEqual({ field: 'motivation', text: 'Quiero mejorar mi salud.' });
+    expect(
+      v.safeParse(AiModel.improvedGoal, {
+        field: 'title',
+        text: 'x'.repeat(201),
+      }).success,
+    ).toBe(false);
   });
 
   test('requires its inputs and exposes only calories', () => {

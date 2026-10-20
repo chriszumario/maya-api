@@ -17,7 +17,10 @@ type CreateTaskLogDTO = TaskLogsModel['create'];
 type UpdateTaskLogDTO = TaskLogsModel['update'];
 
 export abstract class TaskLogsService {
-  private static validateTask(task: Awaited<ReturnType<typeof requireOwnedTask>>, localDate: string) {
+  private static validateTask(
+    task: Awaited<ReturnType<typeof requireOwnedTask>>,
+    localDate: string,
+  ) {
     if (!task.isActive) {
       throw new ApiError(409, 'La tarea no está activa', 'TASK_NOT_ACTIVE');
     }
@@ -60,12 +63,7 @@ export abstract class TaskLogsService {
     return log;
   }
 
-  static async list(
-    userId: number,
-    limit: number,
-    cursor?: string,
-    date?: string
-  ) {
+  static async list(userId: number, limit: number, cursor?: string, date?: string) {
     const cursorContext = { scope: 'task-logs', filter: date ?? null } as const;
     const decodedCursor = cursor ? decodeDateIdCursor(cursor, cursorContext) : null;
     if (cursor && !decodedCursor) {
@@ -79,10 +77,7 @@ export abstract class TaskLogsService {
         ...(decodedCursor
           ? {
               RAW: (table) =>
-                beforeDateIdCursor(
-                  { localDate: table.localDate, id: table.id },
-                  decodedCursor,
-                ),
+                beforeDateIdCursor({ localDate: table.localDate, id: table.id }, decodedCursor),
             }
           : {}),
       },
@@ -130,11 +125,13 @@ export abstract class TaskLogsService {
       const [updated] = await tx
         .update(taskLogs)
         .set(data)
-        .where(and(
-          eq(taskLogs.id, logId),
-          eq(taskLogs.status, existing.status),
-          eq(taskLogs.durationMinutes, existing.durationMinutes),
-        ))
+        .where(
+          and(
+            eq(taskLogs.id, logId),
+            eq(taskLogs.status, existing.status),
+            eq(taskLogs.durationMinutes, existing.durationMinutes),
+          ),
+        )
         .returning();
       if (!updated) return undefined;
       if (existing.localDate === today) {

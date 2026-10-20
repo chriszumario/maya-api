@@ -1,11 +1,6 @@
 import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import { db } from '@/db/drizzle';
-import {
-  dailyUserMetrics,
-  goals,
-  journalEntries,
-  nutritionEntries,
-} from '@/db/schema';
+import { dailyUserMetrics, goals, journalEntries, nutritionEntries } from '@/db/schema';
 import { getUserLocalDate } from '@/lib';
 import { DailyMetricsService } from '@/modules/today/daily-metrics.service';
 import { cache } from '@/lib/cache';
@@ -62,10 +57,22 @@ export abstract class DashboardService {
       db
         .select({
           total: sql<number>`count(*)`.mapWith(Number),
-          pending: sql<number>`coalesce(sum(case when ${goals.status} = 'pending' then 1 else 0 end), 0)`.mapWith(Number),
-          inProgress: sql<number>`coalesce(sum(case when ${goals.status} = 'in_progress' then 1 else 0 end), 0)`.mapWith(Number),
-          completed: sql<number>`coalesce(sum(case when ${goals.status} = 'completed' then 1 else 0 end), 0)`.mapWith(Number),
-          cancelled: sql<number>`coalesce(sum(case when ${goals.status} = 'cancelled' then 1 else 0 end), 0)`.mapWith(Number),
+          pending:
+            sql<number>`coalesce(sum(case when ${goals.status} = 'pending' then 1 else 0 end), 0)`.mapWith(
+              Number,
+            ),
+          inProgress:
+            sql<number>`coalesce(sum(case when ${goals.status} = 'in_progress' then 1 else 0 end), 0)`.mapWith(
+              Number,
+            ),
+          completed:
+            sql<number>`coalesce(sum(case when ${goals.status} = 'completed' then 1 else 0 end), 0)`.mapWith(
+              Number,
+            ),
+          cancelled:
+            sql<number>`coalesce(sum(case when ${goals.status} = 'cancelled' then 1 else 0 end), 0)`.mapWith(
+              Number,
+            ),
         })
         .from(goals)
         .where(eq(goals.userId, userId)),
@@ -76,7 +83,9 @@ export abstract class DashboardService {
       db
         .select({
           mealsLogged: sql<number>`count(*)`.mapWith(Number),
-          caloriesLogged: sql<number>`coalesce(sum(${nutritionEntries.calories}), 0)`.mapWith(Number),
+          caloriesLogged: sql<number>`coalesce(sum(${nutritionEntries.calories}), 0)`.mapWith(
+            Number,
+          ),
         })
         .from(nutritionEntries)
         .where(and(eq(nutritionEntries.userId, userId), eq(nutritionEntries.localDate, date))),
@@ -128,7 +137,11 @@ export abstract class DashboardService {
     const today = await getUserLocalDate(userId);
     const minDate = subtractDays(today, INSIGHT_DAYS - 1);
     const currentWeekStart = subtractDays(today, 6);
-    const missingDates = await getMissingMetricsDates(userId, dateRange(minDate, INSIGHT_DAYS), today);
+    const missingDates = await getMissingMetricsDates(
+      userId,
+      dateRange(minDate, INSIGHT_DAYS),
+      today,
+    );
 
     const [priorityGoals, metricRows] = await Promise.all([
       db
@@ -148,17 +161,27 @@ export abstract class DashboardService {
         .limit(3),
       db
         .select({
-          plannedTasks: sql<number>`coalesce(sum(${dailyUserMetrics.plannedTasksCount}), 0)`.mapWith(Number),
-          completedTasks: sql<number>`coalesce(sum(${dailyUserMetrics.completedTasksCount}), 0)`.mapWith(Number),
-          currentCompletedTasks: sql<number>`coalesce(sum(case when ${dailyUserMetrics.localDate} >= ${currentWeekStart} then ${dailyUserMetrics.completedTasksCount} else 0 end), 0)`.mapWith(Number),
-          previousCompletedTasks: sql<number>`coalesce(sum(case when ${dailyUserMetrics.localDate} < ${currentWeekStart} then ${dailyUserMetrics.completedTasksCount} else 0 end), 0)`.mapWith(Number),
+          plannedTasks:
+            sql<number>`coalesce(sum(${dailyUserMetrics.plannedTasksCount}), 0)`.mapWith(Number),
+          completedTasks:
+            sql<number>`coalesce(sum(${dailyUserMetrics.completedTasksCount}), 0)`.mapWith(Number),
+          currentCompletedTasks:
+            sql<number>`coalesce(sum(case when ${dailyUserMetrics.localDate} >= ${currentWeekStart} then ${dailyUserMetrics.completedTasksCount} else 0 end), 0)`.mapWith(
+              Number,
+            ),
+          previousCompletedTasks:
+            sql<number>`coalesce(sum(case when ${dailyUserMetrics.localDate} < ${currentWeekStart} then ${dailyUserMetrics.completedTasksCount} else 0 end), 0)`.mapWith(
+              Number,
+            ),
         })
         .from(dailyUserMetrics)
-        .where(and(
-          eq(dailyUserMetrics.userId, userId),
-          gte(dailyUserMetrics.localDate, minDate),
-          lte(dailyUserMetrics.localDate, today),
-        )),
+        .where(
+          and(
+            eq(dailyUserMetrics.userId, userId),
+            gte(dailyUserMetrics.localDate, minDate),
+            lte(dailyUserMetrics.localDate, today),
+          ),
+        ),
     ]);
 
     const metrics = metricRows[0] ?? {
@@ -172,9 +195,12 @@ export abstract class DashboardService {
     const completionRate = percentage(completed, planned);
     const currentCompleted = metrics.currentCompletedTasks;
     const previousCompleted = metrics.previousCompletedTasks;
-    const change = previousCompleted === 0
-      ? (currentCompleted === 0 ? 0 : 100)
-      : Math.round(((currentCompleted - previousCompleted) / previousCompleted) * 100);
+    const change =
+      previousCompleted === 0
+        ? currentCompleted === 0
+          ? 0
+          : 100
+        : Math.round(((currentCompleted - previousCompleted) / previousCompleted) * 100);
     const direction: 'up' | 'down' | 'stable' =
       change > 10 ? 'up' : change < -10 ? 'down' : 'stable';
 
@@ -210,14 +236,16 @@ export abstract class DashboardService {
     if (planned >= 3 && completionRate < 50) {
       recommendations.push({
         code: 'REDUCE_DAILY_LOAD',
-        message: 'Reduce la carga planificada o divide las tareas hasta recuperar una tasa sostenible.',
+        message:
+          'Reduce la carga planificada o divide las tareas hasta recuperar una tasa sostenible.',
       });
     }
-    const trendCode: 'COMPLETION_UP' | 'COMPLETION_DOWN' | 'COMPLETION_STABLE' = direction === 'up'
-      ? 'COMPLETION_UP'
-      : direction === 'down'
-        ? 'COMPLETION_DOWN'
-        : 'COMPLETION_STABLE';
+    const trendCode: 'COMPLETION_UP' | 'COMPLETION_DOWN' | 'COMPLETION_STABLE' =
+      direction === 'up'
+        ? 'COMPLETION_UP'
+        : direction === 'down'
+          ? 'COMPLETION_DOWN'
+          : 'COMPLETION_STABLE';
 
     return {
       periodDays: INSIGHT_DAYS,
@@ -225,17 +253,20 @@ export abstract class DashboardService {
       missingDates,
       priorities: priorityGoals.map((goal) => ({
         ...goal,
-        reason: goal.status === 'pending'
-          ? `Meta ${goal.priority === 'high' ? 'de alta prioridad ' : ''}aún no iniciada.`
-          : `Meta ${goal.priority === 'high' ? 'de alta prioridad ' : ''}en progreso.`,
+        reason:
+          goal.status === 'pending'
+            ? `Meta ${goal.priority === 'high' ? 'de alta prioridad ' : ''}aún no iniciada.`
+            : `Meta ${goal.priority === 'high' ? 'de alta prioridad ' : ''}en progreso.`,
       })),
       alerts,
-      trends: [{
-        code: trendCode,
-        direction,
-        change,
-        message: `Las tareas completadas cambiaron ${Math.abs(change)}% frente a los 7 días anteriores.`,
-      }],
+      trends: [
+        {
+          code: trendCode,
+          direction,
+          change,
+          message: `Las tareas completadas cambiaron ${Math.abs(change)}% frente a los 7 días anteriores.`,
+        },
+      ],
       recommendations,
     };
   }
@@ -243,10 +274,8 @@ export abstract class DashboardService {
   static async getTrends(userId: number, days: number, endDate?: string) {
     const today = await getUserLocalDate(userId);
     endDate ??= today;
-    return cache.remember(
-      `dashboard:trends:v1:${userId}:${days}:${endDate}:${today}`,
-      60,
-      () => this.loadTrends(userId, days, endDate, today),
+    return cache.remember(`dashboard:trends:v1:${userId}:${days}:${endDate}:${today}`, 60, () =>
+      this.loadTrends(userId, days, endDate, today),
     );
   }
 
@@ -267,7 +296,13 @@ export abstract class DashboardService {
             completedMinutes: dailyUserMetrics.completedMinutes,
           })
           .from(dailyUserMetrics)
-          .where(and(eq(dailyUserMetrics.userId, userId), gte(dailyUserMetrics.localDate, from), lte(dailyUserMetrics.localDate, endDate))),
+          .where(
+            and(
+              eq(dailyUserMetrics.userId, userId),
+              gte(dailyUserMetrics.localDate, from),
+              lte(dailyUserMetrics.localDate, endDate),
+            ),
+          ),
         db
           .select({ status: goals.status, value: sql<number>`count(*)`.mapWith(Number) })
           .from(goals)
@@ -276,12 +311,28 @@ export abstract class DashboardService {
         db
           .select({ localDate: goals.endedAt, value: sql<number>`count(*)`.mapWith(Number) })
           .from(goals)
-          .where(and(eq(goals.userId, userId), eq(goals.status, 'completed'), gte(goals.endedAt, from), lte(goals.endedAt, endDate)))
+          .where(
+            and(
+              eq(goals.userId, userId),
+              eq(goals.status, 'completed'),
+              gte(goals.endedAt, from),
+              lte(goals.endedAt, endDate),
+            ),
+          )
           .groupBy(goals.endedAt),
         db
-          .select({ localDate: journalEntries.localDate, value: sql<number>`count(*)`.mapWith(Number) })
+          .select({
+            localDate: journalEntries.localDate,
+            value: sql<number>`count(*)`.mapWith(Number),
+          })
           .from(journalEntries)
-          .where(and(eq(journalEntries.userId, userId), gte(journalEntries.localDate, from), lte(journalEntries.localDate, endDate)))
+          .where(
+            and(
+              eq(journalEntries.userId, userId),
+              gte(journalEntries.localDate, from),
+              lte(journalEntries.localDate, endDate),
+            ),
+          )
           .groupBy(journalEntries.localDate),
         db
           .select({
@@ -290,7 +341,13 @@ export abstract class DashboardService {
             calories: sql<number>`coalesce(sum(${nutritionEntries.calories}), 0)`.mapWith(Number),
           })
           .from(nutritionEntries)
-          .where(and(eq(nutritionEntries.userId, userId), gte(nutritionEntries.localDate, from), lte(nutritionEntries.localDate, endDate)))
+          .where(
+            and(
+              eq(nutritionEntries.userId, userId),
+              gte(nutritionEntries.localDate, from),
+              lte(nutritionEntries.localDate, endDate),
+            ),
+          )
           .groupBy(nutritionEntries.localDate),
       ]);
 
@@ -310,10 +367,12 @@ export abstract class DashboardService {
         pending: series((date) => taskMetrics.get(date)?.pending ?? 0),
         inProgress: series((date) => taskMetrics.get(date)?.inProgress ?? 0),
         completed: series((date) => taskMetrics.get(date)?.completed ?? 0),
-        completionRate: series((date) => percentage(
-          taskMetrics.get(date)?.completed ?? 0,
-          taskMetrics.get(date)?.plannedTasks ?? 0,
-        )),
+        completionRate: series((date) =>
+          percentage(
+            taskMetrics.get(date)?.completed ?? 0,
+            taskMetrics.get(date)?.plannedTasks ?? 0,
+          ),
+        ),
         plannedMinutes: series((date) => taskMetrics.get(date)?.plannedMinutes ?? 0),
         completedMinutes: series((date) => taskMetrics.get(date)?.completedMinutes ?? 0),
       },
@@ -331,5 +390,4 @@ export abstract class DashboardService {
       },
     };
   }
-
 }

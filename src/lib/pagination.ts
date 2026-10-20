@@ -38,16 +38,15 @@ export function toDateIdCursorPage<T extends { id: number; localDate: string }>(
 }
 
 const encodeDateIdCursor = ({ localDate, id }: DateIdCursor, context?: CursorContext) =>
-  Buffer.from(JSON.stringify({
-    d: localDate,
-    i: id,
-    ...(context ? { s: context.scope, f: context.filter ?? null } : {}),
-  })).toString('base64url');
+  Buffer.from(
+    JSON.stringify({
+      d: localDate,
+      i: id,
+      ...(context ? { s: context.scope, f: context.filter ?? null } : {}),
+    }),
+  ).toString('base64url');
 
-export function decodeDateIdCursor(
-  cursor: string,
-  context?: CursorContext,
-): DateIdCursor | null {
+export function decodeDateIdCursor(cursor: string, context?: CursorContext): DateIdCursor | null {
   try {
     if (cursor.length > 256) return null;
 
@@ -55,10 +54,12 @@ export function decodeDateIdCursor(
     const decoded = v.safeParse(DateIdCursorSchema, value);
 
     if (!decoded.success) return null;
-    if (context && (
-      decoded.output.s !== context.scope
-      || (decoded.output.f ?? null) !== (context.filter ?? null)
-    )) return null;
+    if (
+      context &&
+      (decoded.output.s !== context.scope ||
+        (decoded.output.f ?? null) !== (context.filter ?? null))
+    )
+      return null;
 
     return { localDate: decoded.output.d, id: decoded.output.i };
   } catch {
@@ -72,10 +73,7 @@ type DateIdColumns = {
 };
 
 /** SQL filter: rows strictly before (localDate, id) in DESC order. */
-export function beforeDateIdCursor(
-  columns: DateIdColumns,
-  cursor: DateIdCursor,
-): SQL {
+export function beforeDateIdCursor(columns: DateIdColumns, cursor: DateIdCursor): SQL {
   return beforeStringIdCursor(
     { value: columns.localDate, id: columns.id },
     { value: cursor.localDate, id: cursor.id },
@@ -102,12 +100,14 @@ export function toStringIdCursorPage<T extends { id: number }>(
   return {
     items,
     nextCursor: last
-      ? Buffer.from(JSON.stringify({
-          v: value(last),
-          i: last.id,
-          s: context.scope,
-          f: context.filter ?? null,
-        })).toString('base64url')
+      ? Buffer.from(
+          JSON.stringify({
+            v: value(last),
+            i: last.id,
+            s: context.scope,
+            f: context.filter ?? null,
+          }),
+        ).toString('base64url')
       : null,
   };
 }
@@ -124,9 +124,10 @@ export function decodeStringIdCursor(
     );
     if (!decoded.success) return null;
     if (
-      decoded.output.s !== context.scope
-      || (decoded.output.f ?? null) !== (context.filter ?? null)
-    ) return null;
+      decoded.output.s !== context.scope ||
+      (decoded.output.f ?? null) !== (context.filter ?? null)
+    )
+      return null;
     return { value: decoded.output.v, id: decoded.output.i };
   } catch {
     return null;

@@ -27,7 +27,8 @@ describe('optional read cache', () => {
     await invalidateCache();
     expect(send).toHaveBeenCalledTimes(1);
     expect(send).toHaveBeenCalledWith('DEL', [
-      'maya:development:cache:one', 'maya:development:cache:two',
+      'maya:development:cache:one',
+      'maya:development:cache:two',
     ]);
   });
 
@@ -42,7 +43,10 @@ describe('optional read cache', () => {
     const send = spyOn(redis, 'send').mockResolvedValue(null);
     expect(await cache.remember('miss', 60, async () => ({ count: 5 }))).toEqual({ count: 5 });
     expect(send).toHaveBeenCalledWith('SET', [
-      'maya:development:cache:miss', '{"count":5}', 'EX', '60',
+      'maya:development:cache:miss',
+      '{"count":5}',
+      'EX',
+      '60',
     ]);
   });
 
@@ -72,7 +76,8 @@ describe('optional read cache', () => {
     spyOn(redis, 'send').mockResolvedValue(null);
     const load = mock(async () => ({ count: 5 }));
     const results = await Promise.all([
-      cache.remember('shared', 30, load), cache.remember('shared', 30, load),
+      cache.remember('shared', 30, load),
+      cache.remember('shared', 30, load),
     ]);
     expect(results).toEqual([{ count: 5 }, { count: 5 }]);
     expect(load).toHaveBeenCalledTimes(1);
@@ -86,16 +91,18 @@ describe('optional read cache', () => {
       return 'OK';
     });
     const keys = ['trends:17:7', 'trends:18:7', 'trends:17:14'];
-    const results = await Promise.all(keys.map((key, index) =>
-      cache.remember(key, 60, async () => index),
-    ));
+    const results = await Promise.all(
+      keys.map((key, index) => cache.remember(key, 60, async () => index)),
+    );
     expect(results).toEqual([0, 1, 2]);
     expect(entries.size).toBe(3);
   });
 
   test.serial('does not cache database errors or retain failed in-flight requests', async () => {
     const send = spyOn(redis, 'send').mockResolvedValue(null);
-    const load = mock(async () => { throw new Error('database unavailable'); });
+    const load = mock(async () => {
+      throw new Error('database unavailable');
+    });
     await expect(cache.remember('failure', 30, load)).rejects.toThrow('database unavailable');
     await expect(cache.remember('failure', 30, load)).rejects.toThrow('database unavailable');
     expect(load).toHaveBeenCalledTimes(2);

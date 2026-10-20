@@ -36,11 +36,14 @@ function isRetryableTransactionError(error: unknown): boolean {
   const messages: string[] = [];
   let current: unknown = error;
   for (let depth = 0; depth < 5 && current; depth++) {
-    messages.push(current instanceof Error ? `${current.name} ${current.message}` : String(current));
+    messages.push(
+      current instanceof Error ? `${current.name} ${current.message}` : String(current),
+    );
     current = typeof current === 'object' && 'cause' in current ? current.cause : undefined;
   }
-  return /SQLITE_BUSY|SQLITE_LOCKED|database is locked|transaction.*conflict|write conflict|refresh_token_rotations.*(?:sourceTokenId|PRIMARY KEY)/i
-    .test(messages.join(' '));
+  return /SQLITE_BUSY|SQLITE_LOCKED|database is locked|transaction.*conflict|write conflict|refresh_token_rotations.*(?:sourceTokenId|PRIMARY KEY)/i.test(
+    messages.join(' '),
+  );
 }
 
 export abstract class RefreshTokenService {
@@ -71,19 +74,17 @@ export abstract class RefreshTokenService {
   ): Promise<TokenPair> {
     const tokenHash = hashToken(rawToken);
     const expectedIdempotencyKey = deriveRefreshIdempotencyKey(rawToken);
-    const validIdempotencyKey = idempotencyKey !== undefined
-      && /^[A-Za-z0-9_-]{43}$/.test(idempotencyKey)
-      && constantTimeEqual(idempotencyKey, expectedIdempotencyKey);
+    const validIdempotencyKey =
+      idempotencyKey !== undefined &&
+      /^[A-Za-z0-9_-]{43}$/.test(idempotencyKey) &&
+      constantTimeEqual(idempotencyKey, expectedIdempotencyKey);
     const idempotencyKeyHash = validIdempotencyKey ? hashToken(idempotencyKey) : undefined;
 
     for (let attempt = 0; attempt < CONCURRENT_ROTATION_RETRIES; attempt++) {
       try {
-        const outcome = await db.transaction(async (tx) => this.rotateInTransaction(
-          tx,
-          tokenHash,
-          idempotencyKeyHash,
-          signAccessToken,
-        ));
+        const outcome = await db.transaction(async (tx) =>
+          this.rotateInTransaction(tx, tokenHash, idempotencyKeyHash, signAccessToken),
+        );
 
         if (outcome.kind === 'claim-lost') {
           await Bun.sleep(25);
@@ -96,7 +97,11 @@ export abstract class RefreshTokenService {
           throw new ApiError(400, 'Idempotency-Key inválida o ausente', 'INVALID_IDEMPOTENCY_KEY');
         }
         if (outcome.kind === 'reuse') {
-          throw new ApiError(401, 'Refresh token reutilizado; sesión invalidada', 'REFRESH_TOKEN_REUSE');
+          throw new ApiError(
+            401,
+            'Refresh token reutilizado; sesión invalidada',
+            'REFRESH_TOKEN_REUSE',
+          );
         }
         return outcome.result;
       } catch (error) {
@@ -107,7 +112,11 @@ export abstract class RefreshTokenService {
       }
     }
 
-    throw new ApiError(503, 'Rotación de refresh token en progreso', 'REFRESH_ROTATION_IN_PROGRESS');
+    throw new ApiError(
+      503,
+      'Rotación de refresh token en progreso',
+      'REFRESH_ROTATION_IN_PROGRESS',
+    );
   }
 
   private static async rotateInTransaction(
@@ -128,10 +137,15 @@ export abstract class RefreshTokenService {
         tokenVersion: users.tokenVersion,
         rotationKeyHash: refreshTokenRotations.idempotencyKeyHash,
         encryptedResult: refreshTokenRotations.encryptedResult,
-        replayActive: sql<boolean>`${refreshTokenRotations.replayExpiresAt} > CURRENT_TIMESTAMP`.mapWith(Boolean),
+        replayActive:
+          sql<boolean>`${refreshTokenRotations.replayExpiresAt} > CURRENT_TIMESTAMP`.mapWith(
+            Boolean,
+          ),
         successorTokenId: refreshTokenRotations.successorTokenId,
         successorRevokedAt: successorToken.revokedAt,
-        successorExpired: sql<boolean>`${successorToken.expiresAt} <= CURRENT_TIMESTAMP`.mapWith(Boolean),
+        successorExpired: sql<boolean>`${successorToken.expiresAt} <= CURRENT_TIMESTAMP`.mapWith(
+          Boolean,
+        ),
       })
       .from(refreshTokens)
       .innerJoin(users, eq(users.id, refreshTokens.userId))
@@ -144,18 +158,18 @@ export abstract class RefreshTokenService {
 
     if (existing.revokedAt) {
       if (
-        idempotencyKeyHash !== undefined
-        && existing.rotationKeyHash !== null
-        && existing.rotationKeyHash !== undefined
-        && constantTimeEqual(idempotencyKeyHash, existing.rotationKeyHash)
-        && existing.replayActive
-        && existing.successorTokenId !== null
-        && existing.successorTokenId !== undefined
-        && existing.successorRevokedAt === null
-        && !existing.successorExpired
-        && existing.isActive
-        && existing.encryptedResult !== null
-        && existing.encryptedResult !== undefined
+        idempotencyKeyHash !== undefined &&
+        existing.rotationKeyHash !== null &&
+        existing.rotationKeyHash !== undefined &&
+        constantTimeEqual(idempotencyKeyHash, existing.rotationKeyHash) &&
+        existing.replayActive &&
+        existing.successorTokenId !== null &&
+        existing.successorTokenId !== undefined &&
+        existing.successorRevokedAt === null &&
+        !existing.successorExpired &&
+        existing.isActive &&
+        existing.encryptedResult !== null &&
+        existing.encryptedResult !== undefined
       ) {
         const additionalData = rotationAdditionalData(
           existing.id,
@@ -163,15 +177,25 @@ export abstract class RefreshTokenService {
           existing.familyId,
           idempotencyKeyHash,
         );
-        const { tokenVersion, ...result } = await decryptRefreshRotationResult(existing.encryptedResult, additionalData);
+        const { tokenVersion, ...result } = await decryptRefreshRotationResult(
+          existing.encryptedResult,
+          additionalData,
+        );
         // A security event in another family may have invalidated the cached access JWT.
         if (tokenVersion !== existing.tokenVersion) {
-          result.accessToken = await signAccessToken({ userId: existing.userId, tokenVersion: existing.tokenVersion });
-          await tx.update(refreshTokenRotations).set({
-            encryptedResult: await encryptRefreshRotationResult(
-              { ...result, tokenVersion: existing.tokenVersion }, additionalData,
-            ),
-          }).where(eq(refreshTokenRotations.sourceTokenId, existing.id));
+          result.accessToken = await signAccessToken({
+            userId: existing.userId,
+            tokenVersion: existing.tokenVersion,
+          });
+          await tx
+            .update(refreshTokenRotations)
+            .set({
+              encryptedResult: await encryptRefreshRotationResult(
+                { ...result, tokenVersion: existing.tokenVersion },
+                additionalData,
+              ),
+            })
+            .where(eq(refreshTokenRotations.sourceTokenId, existing.id));
         }
         return { kind: 'success' as const, result };
       }
@@ -235,7 +259,10 @@ export abstract class RefreshTokenService {
       sourceTokenId: existing.id,
       successorTokenId: successor.id,
       idempotencyKeyHash,
-      encryptedResult: await encryptRefreshRotationResult({ ...result, tokenVersion: existing.tokenVersion }, additionalData),
+      encryptedResult: await encryptRefreshRotationResult(
+        { ...result, tokenVersion: existing.tokenVersion },
+        additionalData,
+      ),
       replayExpiresAt: sql`datetime('now', ${`+${REPLAY_WINDOW_SECONDS} seconds`})`,
     });
     await this.deleteExpiredRotations(tx);
@@ -272,11 +299,13 @@ export abstract class RefreshTokenService {
       .select({ id: refreshTokens.id })
       .from(refreshTokens)
       .where(eq(refreshTokens.userId, userId));
-    await tx.delete(refreshTokenRotations).where(inArray(refreshTokenRotations.sourceTokenId, tokens));
+    await tx
+      .delete(refreshTokenRotations)
+      .where(inArray(refreshTokenRotations.sourceTokenId, tokens));
   }
 
   static async getActiveSessions(
-    userId: number
+    userId: number,
   ): Promise<Array<{ id: number; familyId: string; createdAt: string; expiresAt: string }>> {
     return db
       .select({
@@ -290,8 +319,8 @@ export abstract class RefreshTokenService {
         and(
           eq(refreshTokens.userId, userId),
           isNull(refreshTokens.revokedAt),
-          gt(refreshTokens.expiresAt, sql`CURRENT_TIMESTAMP`)
-        )
+          gt(refreshTokens.expiresAt, sql`CURRENT_TIMESTAMP`),
+        ),
       )
       .orderBy(desc(refreshTokens.createdAt));
   }
@@ -301,7 +330,7 @@ export abstract class RefreshTokenService {
       .select({ count: sql<number>`count(*)`.mapWith(Number) })
       .from(refreshTokens)
       .where(
-        and(isNull(refreshTokens.revokedAt), gt(refreshTokens.expiresAt, sql`CURRENT_TIMESTAMP`))
+        and(isNull(refreshTokens.revokedAt), gt(refreshTokens.expiresAt, sql`CURRENT_TIMESTAMP`)),
       );
     return result?.count ?? 0;
   }
@@ -314,8 +343,8 @@ export abstract class RefreshTokenService {
         and(
           eq(refreshTokens.userId, userId),
           isNull(refreshTokens.revokedAt),
-          gt(refreshTokens.expiresAt, sql`CURRENT_TIMESTAMP`)
-        )
+          gt(refreshTokens.expiresAt, sql`CURRENT_TIMESTAMP`),
+        ),
       )
       .orderBy(asc(refreshTokens.createdAt), asc(refreshTokens.id));
 
@@ -328,22 +357,25 @@ export abstract class RefreshTokenService {
       .where(and(inArray(refreshTokens.id, overflowIds), isNull(refreshTokens.revokedAt)))
       .returning({ id: refreshTokens.id });
     if (revoked.length > 0) {
-      await tx.update(users)
+      await tx
+        .update(users)
         .set({ tokenVersion: sql`${users.tokenVersion} + 1` })
         .where(eq(users.id, userId));
     }
   }
 
   private static async deleteOldHistory(tx: Transaction): Promise<void> {
-    await tx.delete(refreshTokens).where(
-      or(
-        and(
-          isNotNull(refreshTokens.revokedAt),
-          lt(refreshTokens.revokedAt, sql`datetime('now', ${`-${HISTORY_RETENTION_DAYS} days`})`),
+    await tx
+      .delete(refreshTokens)
+      .where(
+        or(
+          and(
+            isNotNull(refreshTokens.revokedAt),
+            lt(refreshTokens.revokedAt, sql`datetime('now', ${`-${HISTORY_RETENTION_DAYS} days`})`),
+          ),
+          lt(refreshTokens.expiresAt, sql`datetime('now', ${`-${HISTORY_RETENTION_DAYS} days`})`),
         ),
-        lt(refreshTokens.expiresAt, sql`datetime('now', ${`-${HISTORY_RETENTION_DAYS} days`})`),
-      ),
-    );
+      );
   }
 
   private static async deleteExpiredRotations(tx: Transaction): Promise<void> {
@@ -352,14 +384,19 @@ export abstract class RefreshTokenService {
       .where(lte(refreshTokenRotations.replayExpiresAt, sql`CURRENT_TIMESTAMP`));
   }
 
-  private static async revokeFamily(userId: number, familyId: string, tx: Transaction): Promise<void> {
+  private static async revokeFamily(
+    userId: number,
+    familyId: string,
+    tx: Transaction,
+  ): Promise<void> {
     const revoked = await tx
       .update(refreshTokens)
       .set({ revokedAt: sql`CURRENT_TIMESTAMP` })
       .where(and(eq(refreshTokens.familyId, familyId), isNull(refreshTokens.revokedAt)))
       .returning({ id: refreshTokens.id });
     if (revoked.length > 0) {
-      await tx.update(users)
+      await tx
+        .update(users)
         .set({ tokenVersion: sql`${users.tokenVersion} + 1` })
         .where(eq(users.id, userId));
     }
@@ -371,6 +408,8 @@ export abstract class RefreshTokenService {
       .select({ id: refreshTokens.id })
       .from(refreshTokens)
       .where(eq(refreshTokens.familyId, familyId));
-    await tx.delete(refreshTokenRotations).where(inArray(refreshTokenRotations.sourceTokenId, tokens));
+    await tx
+      .delete(refreshTokenRotations)
+      .where(inArray(refreshTokenRotations.sourceTokenId, tokens));
   }
 }

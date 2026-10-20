@@ -1,12 +1,4 @@
-import {
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  mock,
-  spyOn,
-  test,
-} from 'bun:test';
+import { afterEach, beforeAll, describe, expect, mock, spyOn, test } from 'bun:test';
 import { db } from '@/db/drizzle';
 import { hashPassword } from '@/lib/crypto';
 import { AuthService } from '@/modules/auth/auth.service';
@@ -39,12 +31,14 @@ describe('AuthService.register', () => {
     const values = mock(() => ({ onConflictDoNothing }));
     spyOn(db, 'insert').mockReturnValue({ values } as never);
 
-    await expect(AuthService.register({
-      name: 'Ana',
-      email: 'ana@example.com',
-      password: 'secure-password',
-      timezone: 'America/La_Paz',
-    })).resolves.toBeUndefined();
+    await expect(
+      AuthService.register({
+        name: 'Ana',
+        email: 'ana@example.com',
+        password: 'secure-password',
+        timezone: 'America/La_Paz',
+      }),
+    ).resolves.toBeUndefined();
 
     expect(onConflictDoNothing).toHaveBeenCalledTimes(1);
   });
@@ -57,13 +51,14 @@ describe('AuthService.login', () => {
       select: () => selectRows([{ tokenVersion: 3 }]),
     };
     spyOn(db, 'transaction').mockImplementation(async (callback) => callback(tx as never));
-    const issue = spyOn(RefreshTokenService, 'issue')
-      .mockResolvedValue('new-refresh-token');
+    const issue = spyOn(RefreshTokenService, 'issue').mockResolvedValue('new-refresh-token');
 
-    await expect(AuthService.login({
-      email: 'ana@example.com',
-      password: 'correct-password',
-    })).resolves.toEqual({
+    await expect(
+      AuthService.login({
+        email: 'ana@example.com',
+        password: 'correct-password',
+      }),
+    ).resolves.toEqual({
       user: {
         id: 9,
         name: 'Ana',
@@ -81,22 +76,26 @@ describe('AuthService.login', () => {
     spyOn(db, 'select').mockReturnValue(selectRows([userRow()]) as never);
     const issue = spyOn(RefreshTokenService, 'issue');
 
-    await expectApiError(AuthService.login({
-      email: 'ana@example.com',
-      password: 'wrong-password',
-    }), { status: 401, type: 'INVALID_CREDENTIALS' });
+    await expectApiError(
+      AuthService.login({
+        email: 'ana@example.com',
+        password: 'wrong-password',
+      }),
+      { status: 401, type: 'INVALID_CREDENTIALS' },
+    );
     expect(issue).not.toHaveBeenCalled();
   });
 
   test.serial('rejects a valid login for an inactive account', async () => {
-    spyOn(db, 'select').mockReturnValue(selectRows([
-      { ...userRow(), isActive: false },
-    ]) as never);
+    spyOn(db, 'select').mockReturnValue(selectRows([{ ...userRow(), isActive: false }]) as never);
 
-    await expectApiError(AuthService.login({
-      email: 'ana@example.com',
-      password: 'correct-password',
-    }), { status: 403, type: 'PENDING_APPROVAL' });
+    await expectApiError(
+      AuthService.login({
+        email: 'ana@example.com',
+        password: 'correct-password',
+      }),
+      { status: 403, type: 'PENDING_APPROVAL' },
+    );
   });
 });
 
@@ -131,10 +130,13 @@ describe('AuthService.updatePassword', () => {
     spyOn(db, 'transaction').mockImplementation(async (callback) => callback(tx as never));
     const revoke = spyOn(RefreshTokenService, 'revokeAllForUser');
 
-    await expectApiError(AuthService.updatePassword(9, {
-      currentPassword: 'correct-password',
-      newPassword: 'different-password',
-    }), { status: 409, type: 'PASSWORD_CHANGED' });
+    await expectApiError(
+      AuthService.updatePassword(9, {
+        currentPassword: 'correct-password',
+        newPassword: 'different-password',
+      }),
+      { status: 409, type: 'PASSWORD_CHANGED' },
+    );
     expect(revoke).not.toHaveBeenCalled();
   });
 });

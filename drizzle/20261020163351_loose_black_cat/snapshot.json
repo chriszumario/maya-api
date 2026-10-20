@@ -1,0 +1,1774 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "4aa10ed0-7547-4ac3-be4d-f6511a7993c3",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
+  "ddl": [
+    {
+      "name": "daily_user_metrics",
+      "entityType": "tables"
+    },
+    {
+      "name": "goal_reviews",
+      "entityType": "tables"
+    },
+    {
+      "name": "goals",
+      "entityType": "tables"
+    },
+    {
+      "name": "journal_entries",
+      "entityType": "tables"
+    },
+    {
+      "name": "nutrition_entries",
+      "entityType": "tables"
+    },
+    {
+      "name": "refresh_token_rotations",
+      "entityType": "tables"
+    },
+    {
+      "name": "refresh_tokens",
+      "entityType": "tables"
+    },
+    {
+      "name": "task_logs",
+      "entityType": "tables"
+    },
+    {
+      "name": "tasks",
+      "entityType": "tables"
+    },
+    {
+      "name": "users",
+      "entityType": "tables"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "daily_user_metrics"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "userId",
+      "entityType": "columns",
+      "table": "daily_user_metrics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "localDate",
+      "entityType": "columns",
+      "table": "daily_user_metrics"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "plannedTasksCount",
+      "entityType": "columns",
+      "table": "daily_user_metrics"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "plannedMinutes",
+      "entityType": "columns",
+      "table": "daily_user_metrics"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "pendingTasksCount",
+      "entityType": "columns",
+      "table": "daily_user_metrics"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "inProgressTasksCount",
+      "entityType": "columns",
+      "table": "daily_user_metrics"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "completedTasksCount",
+      "entityType": "columns",
+      "table": "daily_user_metrics"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "completedMinutes",
+      "entityType": "columns",
+      "table": "daily_user_metrics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "daily_user_metrics"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "daily_user_metrics"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "goal_reviews"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "goalId",
+      "entityType": "columns",
+      "table": "goal_reviews"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "localDate",
+      "entityType": "columns",
+      "table": "goal_reviews"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "whatWorked",
+      "entityType": "columns",
+      "table": "goal_reviews"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "whatDidNotWork",
+      "entityType": "columns",
+      "table": "goal_reviews"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nextActions",
+      "entityType": "columns",
+      "table": "goal_reviews"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "continueGoal",
+      "entityType": "columns",
+      "table": "goal_reviews"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "goal_reviews"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "goal_reviews"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "userId",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "title",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "motivation",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "category",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "priority",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'pending'",
+      "generated": null,
+      "name": "status",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "startDate",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "endedAt",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "userId",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "localDate",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "title",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "content",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "mood",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "energyLevel",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "gratitude",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "wins",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "lessons",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "problems",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "ideas",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "journal_entries"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "nutrition_entries"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "userId",
+      "entityType": "columns",
+      "table": "nutrition_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "localDate",
+      "entityType": "columns",
+      "table": "nutrition_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "mealType",
+      "entityType": "columns",
+      "table": "nutrition_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "nutrition_entries"
+    },
+    {
+      "type": "real",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "quantity",
+      "entityType": "columns",
+      "table": "nutrition_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "unit",
+      "entityType": "columns",
+      "table": "nutrition_entries"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "calories",
+      "entityType": "columns",
+      "table": "nutrition_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "nutrition_entries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "nutrition_entries"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceTokenId",
+      "entityType": "columns",
+      "table": "refresh_token_rotations"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "successorTokenId",
+      "entityType": "columns",
+      "table": "refresh_token_rotations"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "idempotencyKeyHash",
+      "entityType": "columns",
+      "table": "refresh_token_rotations"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "encryptedResult",
+      "entityType": "columns",
+      "table": "refresh_token_rotations"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "replayExpiresAt",
+      "entityType": "columns",
+      "table": "refresh_token_rotations"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "refresh_token_rotations"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "refresh_tokens"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "userId",
+      "entityType": "columns",
+      "table": "refresh_tokens"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "tokenHash",
+      "entityType": "columns",
+      "table": "refresh_tokens"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "familyId",
+      "entityType": "columns",
+      "table": "refresh_tokens"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "expiresAt",
+      "entityType": "columns",
+      "table": "refresh_tokens"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "revokedAt",
+      "entityType": "columns",
+      "table": "refresh_tokens"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "refresh_tokens"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "task_logs"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taskId",
+      "entityType": "columns",
+      "table": "task_logs"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "localDate",
+      "entityType": "columns",
+      "table": "task_logs"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "status",
+      "entityType": "columns",
+      "table": "task_logs"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "durationMinutes",
+      "entityType": "columns",
+      "table": "task_logs"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "task_logs"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "task_logs"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "goalId",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "title",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "estimatedMinutes",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "startTime",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "frequency",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "recurrenceMask",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isActive",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "tasks"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "email",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "passwordHash",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "isAdmin",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "isActive",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "tokenVersion",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "timezone",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "users"
+    },
+    {
+      "columns": [
+        "userId"
+      ],
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_daily_user_metrics_userId_users_id_fk",
+      "entityType": "fks",
+      "table": "daily_user_metrics"
+    },
+    {
+      "columns": [
+        "goalId"
+      ],
+      "tableTo": "goals",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_goal_reviews_goalId_goals_id_fk",
+      "entityType": "fks",
+      "table": "goal_reviews"
+    },
+    {
+      "columns": [
+        "userId"
+      ],
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_goals_userId_users_id_fk",
+      "entityType": "fks",
+      "table": "goals"
+    },
+    {
+      "columns": [
+        "userId"
+      ],
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_journal_entries_userId_users_id_fk",
+      "entityType": "fks",
+      "table": "journal_entries"
+    },
+    {
+      "columns": [
+        "userId"
+      ],
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_nutrition_entries_userId_users_id_fk",
+      "entityType": "fks",
+      "table": "nutrition_entries"
+    },
+    {
+      "columns": [
+        "sourceTokenId"
+      ],
+      "tableTo": "refresh_tokens",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_refresh_token_rotations_sourceTokenId_refresh_tokens_id_fk",
+      "entityType": "fks",
+      "table": "refresh_token_rotations"
+    },
+    {
+      "columns": [
+        "successorTokenId"
+      ],
+      "tableTo": "refresh_tokens",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_refresh_token_rotations_successorTokenId_refresh_tokens_id_fk",
+      "entityType": "fks",
+      "table": "refresh_token_rotations"
+    },
+    {
+      "columns": [
+        "userId"
+      ],
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_refresh_tokens_userId_users_id_fk",
+      "entityType": "fks",
+      "table": "refresh_tokens"
+    },
+    {
+      "columns": [
+        "taskId"
+      ],
+      "tableTo": "tasks",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_task_logs_taskId_tasks_id_fk",
+      "entityType": "fks",
+      "table": "task_logs"
+    },
+    {
+      "columns": [
+        "goalId"
+      ],
+      "tableTo": "goals",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_tasks_goalId_goals_id_fk",
+      "entityType": "fks",
+      "table": "tasks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "daily_user_metrics_pk",
+      "table": "daily_user_metrics",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "goal_reviews_pk",
+      "table": "goal_reviews",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "goals_pk",
+      "table": "goals",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "journal_entries_pk",
+      "table": "journal_entries",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "nutrition_entries_pk",
+      "table": "nutrition_entries",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "sourceTokenId"
+      ],
+      "nameExplicit": false,
+      "name": "refresh_token_rotations_pk",
+      "table": "refresh_token_rotations",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "refresh_tokens_pk",
+      "table": "refresh_tokens",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "task_logs_pk",
+      "table": "task_logs",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "tasks_pk",
+      "table": "tasks",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "users_pk",
+      "table": "users",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        {
+          "value": "userId",
+          "isExpression": false
+        },
+        {
+          "value": "localDate",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "name": "daily_user_metrics_userId_date_unique",
+      "entityType": "indexes",
+      "table": "daily_user_metrics"
+    },
+    {
+      "columns": [
+        {
+          "value": "localDate",
+          "isExpression": false
+        },
+        {
+          "value": "userId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "daily_user_metrics_date_userId_idx",
+      "entityType": "indexes",
+      "table": "daily_user_metrics"
+    },
+    {
+      "columns": [
+        {
+          "value": "goalId",
+          "isExpression": false
+        },
+        {
+          "value": "localDate",
+          "isExpression": false
+        },
+        {
+          "value": "id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "goal_reviews_goalId_date_idx",
+      "entityType": "indexes",
+      "table": "goal_reviews"
+    },
+    {
+      "columns": [
+        {
+          "value": "createdAt",
+          "isExpression": false
+        },
+        {
+          "value": "userId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "goals_createdAt_userId_idx",
+      "entityType": "indexes",
+      "table": "goals"
+    },
+    {
+      "columns": [
+        {
+          "value": "userId",
+          "isExpression": false
+        },
+        {
+          "value": "createdAt",
+          "isExpression": false
+        },
+        {
+          "value": "id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "goals_userId_createdAt_id_idx",
+      "entityType": "indexes",
+      "table": "goals"
+    },
+    {
+      "columns": [
+        {
+          "value": "userId",
+          "isExpression": false
+        },
+        {
+          "value": "status",
+          "isExpression": false
+        },
+        {
+          "value": "endedAt",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "goals_userId_status_endedAt_idx",
+      "entityType": "indexes",
+      "table": "goals"
+    },
+    {
+      "columns": [
+        {
+          "value": "createdAt",
+          "isExpression": false
+        },
+        {
+          "value": "userId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "journal_entries_createdAt_userId_idx",
+      "entityType": "indexes",
+      "table": "journal_entries"
+    },
+    {
+      "columns": [
+        {
+          "value": "userId",
+          "isExpression": false
+        },
+        {
+          "value": "localDate",
+          "isExpression": false
+        },
+        {
+          "value": "id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "journal_entries_userId_date_id_idx",
+      "entityType": "indexes",
+      "table": "journal_entries"
+    },
+    {
+      "columns": [
+        {
+          "value": "createdAt",
+          "isExpression": false
+        },
+        {
+          "value": "userId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "nutrition_entries_createdAt_userId_idx",
+      "entityType": "indexes",
+      "table": "nutrition_entries"
+    },
+    {
+      "columns": [
+        {
+          "value": "userId",
+          "isExpression": false
+        },
+        {
+          "value": "localDate",
+          "isExpression": false
+        },
+        {
+          "value": "id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "nutrition_entries_userId_date_id_idx",
+      "entityType": "indexes",
+      "table": "nutrition_entries"
+    },
+    {
+      "columns": [
+        {
+          "value": "successorTokenId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "name": "refresh_token_rotations_successor_unique",
+      "entityType": "indexes",
+      "table": "refresh_token_rotations"
+    },
+    {
+      "columns": [
+        {
+          "value": "replayExpiresAt",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "refresh_token_rotations_expiry_idx",
+      "entityType": "indexes",
+      "table": "refresh_token_rotations"
+    },
+    {
+      "columns": [
+        {
+          "value": "userId",
+          "isExpression": false
+        },
+        {
+          "value": "revokedAt",
+          "isExpression": false
+        },
+        {
+          "value": "expiresAt",
+          "isExpression": false
+        },
+        {
+          "value": "createdAt",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "refresh_tokens_active_user_idx",
+      "entityType": "indexes",
+      "table": "refresh_tokens"
+    },
+    {
+      "columns": [
+        {
+          "value": "familyId",
+          "isExpression": false
+        },
+        {
+          "value": "revokedAt",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "refresh_tokens_family_revoked_idx",
+      "entityType": "indexes",
+      "table": "refresh_tokens"
+    },
+    {
+      "columns": [
+        {
+          "value": "localDate",
+          "isExpression": false
+        },
+        {
+          "value": "status",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "task_logs_date_status_idx",
+      "entityType": "indexes",
+      "table": "task_logs"
+    },
+    {
+      "columns": [
+        {
+          "value": "taskId",
+          "isExpression": false
+        },
+        {
+          "value": "localDate",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "name": "task_logs_taskId_date_unique",
+      "entityType": "indexes",
+      "table": "task_logs"
+    },
+    {
+      "columns": [
+        {
+          "value": "goalId",
+          "isExpression": false
+        },
+        {
+          "value": "isActive",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "tasks_goalId_isActive_idx",
+      "entityType": "indexes",
+      "table": "tasks"
+    },
+    {
+      "columns": [
+        {
+          "value": "createdAt",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "tasks_createdAt_idx",
+      "entityType": "indexes",
+      "table": "tasks"
+    },
+    {
+      "columns": [
+        {
+          "value": "goalId",
+          "isExpression": false
+        },
+        {
+          "value": "startTime",
+          "isExpression": false
+        },
+        {
+          "value": "id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "tasks_goalId_startTime_id_idx",
+      "entityType": "indexes",
+      "table": "tasks"
+    },
+    {
+      "columns": [
+        {
+          "value": "lower(\"email\")",
+          "isExpression": true
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "name": "users_email_unique",
+      "entityType": "indexes",
+      "table": "users"
+    },
+    {
+      "columns": [
+        {
+          "value": "createdAt",
+          "isExpression": false
+        },
+        {
+          "value": "id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "users_createdAt_id_idx",
+      "entityType": "indexes",
+      "table": "users"
+    },
+    {
+      "columns": [
+        {
+          "value": "isActive",
+          "isExpression": false
+        },
+        {
+          "value": "createdAt",
+          "isExpression": false
+        },
+        {
+          "value": "id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "users_isActive_createdAt_id_idx",
+      "entityType": "indexes",
+      "table": "users"
+    },
+    {
+      "columns": [
+        "tokenHash"
+      ],
+      "nameExplicit": false,
+      "name": "refresh_tokens_tokenHash_unique",
+      "entityType": "uniques",
+      "table": "refresh_tokens"
+    },
+    {
+      "value": "\n    \"plannedTasksCount\" >= 0 AND\n    \"plannedMinutes\" >= 0 AND\n    \"pendingTasksCount\" >= 0 AND\n    \"inProgressTasksCount\" >= 0 AND\n    \"completedTasksCount\" >= 0 AND\n    \"completedMinutes\" >= 0\n  ",
+      "name": "daily_user_metrics_nonnegative_check",
+      "entityType": "checks",
+      "table": "daily_user_metrics"
+    },
+    {
+      "value": "\n    \"plannedTasksCount\" = \"pendingTasksCount\" + \"inProgressTasksCount\" + \"completedTasksCount\"\n  ",
+      "name": "daily_user_metrics_counts_check",
+      "entityType": "checks",
+      "table": "daily_user_metrics"
+    },
+    {
+      "value": "\"category\" IN ('growth', 'experience', 'contribution')",
+      "name": "goals_category_check",
+      "entityType": "checks",
+      "table": "goals"
+    },
+    {
+      "value": "\"priority\" IN ('low', 'medium', 'high')",
+      "name": "goals_priority_check",
+      "entityType": "checks",
+      "table": "goals"
+    },
+    {
+      "value": "\"status\" IN ('pending', 'in_progress', 'completed', 'cancelled')",
+      "name": "goals_status_check",
+      "entityType": "checks",
+      "table": "goals"
+    },
+    {
+      "value": "\"status\" != 'completed' OR \"endedAt\" IS NOT NULL",
+      "name": "goals_completed_endedAt_check",
+      "entityType": "checks",
+      "table": "goals"
+    },
+    {
+      "value": "\"endedAt\" IS NULL OR \"status\" IN ('completed', 'cancelled')",
+      "name": "goals_endedAt_status_check",
+      "entityType": "checks",
+      "table": "goals"
+    },
+    {
+      "value": "\"startDate\" IS NULL OR \"endedAt\" IS NULL OR \"endedAt\" >= \"startDate\"",
+      "name": "goals_lifecycle_dates_check",
+      "entityType": "checks",
+      "table": "goals"
+    },
+    {
+      "value": "\"mood\" IN ('excellent', 'good', 'neutral', 'bad', 'terrible')",
+      "name": "journal_entries_mood_check",
+      "entityType": "checks",
+      "table": "journal_entries"
+    },
+    {
+      "value": "\"energyLevel\" BETWEEN 1 AND 5",
+      "name": "journal_entries_energyLevel_check",
+      "entityType": "checks",
+      "table": "journal_entries"
+    },
+    {
+      "value": "\"mealType\" IN ('breakfast', 'lunch', 'dinner', 'snack', 'drink')",
+      "name": "nutrition_entries_mealType_check",
+      "entityType": "checks",
+      "table": "nutrition_entries"
+    },
+    {
+      "value": "\"quantity\" > 0 AND \"quantity\" <= 1000000",
+      "name": "nutrition_entries_quantity_check",
+      "entityType": "checks",
+      "table": "nutrition_entries"
+    },
+    {
+      "value": "\"calories\" BETWEEN 0 AND 100000",
+      "name": "nutrition_entries_calories_check",
+      "entityType": "checks",
+      "table": "nutrition_entries"
+    },
+    {
+      "value": "\"status\" IN ('in_progress', 'completed')",
+      "name": "task_logs_status_check",
+      "entityType": "checks",
+      "table": "task_logs"
+    },
+    {
+      "value": "\"durationMinutes\" BETWEEN 0 AND 1440",
+      "name": "task_logs_durationMinutes_check",
+      "entityType": "checks",
+      "table": "task_logs"
+    },
+    {
+      "value": "\"frequency\" IN ('daily', 'weekly', 'monthly', 'once')",
+      "name": "tasks_frequency_check",
+      "entityType": "checks",
+      "table": "tasks"
+    },
+    {
+      "value": "\"estimatedMinutes\" BETWEEN 0 AND 1440",
+      "name": "tasks_estimatedMinutes_check",
+      "entityType": "checks",
+      "table": "tasks"
+    },
+    {
+      "value": "(\n          (\"frequency\" = 'daily' AND \"recurrenceMask\" = 0) OR\n          (\"frequency\" = 'weekly' AND \"recurrenceMask\" BETWEEN 1 AND 127) OR\n          (\"frequency\" = 'monthly' AND \"recurrenceMask\" BETWEEN 1 AND 31) OR\n          (\"frequency\" = 'once'\n            AND \"recurrenceMask\" BETWEEN 19000101 AND 20991231\n            AND strftime('%Y%m%d', printf('%04d-%02d-%02d',\n              \"recurrenceMask\" / 10000,\n              \"recurrenceMask\" / 100 % 100,\n              \"recurrenceMask\" % 100\n            )) IS printf('%08d', \"recurrenceMask\"))\n        )",
+      "name": "tasks_recurrenceMask_check",
+      "entityType": "checks",
+      "table": "tasks"
+    }
+  ],
+  "renames": []
+}

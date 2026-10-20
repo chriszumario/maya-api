@@ -14,20 +14,24 @@ describe('TaskLogsModel', () => {
 
     expect(v.safeParse(TaskLogsModel.create, completeLog).success).toBe(true);
     expect(v.safeParse(TaskLogsModel.create, withoutDuration).success).toBe(false);
-    expect(v.safeParse(TaskLogsModel.create, { ...completeLog, durationMinutes: null }).success)
-      .toBe(false);
+    expect(
+      v.safeParse(TaskLogsModel.create, { ...completeLog, durationMinutes: null }).success,
+    ).toBe(false);
   });
 
   test('accepts only execution states and requires one on create', () => {
     const { status: _, ...withoutStatus } = completeLog;
 
     expect(v.safeParse(TaskLogsModel.create, withoutStatus).success).toBe(false);
-    expect(v.safeParse(TaskLogsModel.create, { ...completeLog, status: 'completed' }).success)
-      .toBe(true);
-    expect(v.safeParse(TaskLogsModel.create, { ...completeLog, status: 'pending' }).success)
-      .toBe(false);
-    expect(v.safeParse(TaskLogsModel.create, { ...completeLog, status: 'skipped' }).success)
-      .toBe(false);
+    expect(v.safeParse(TaskLogsModel.create, { ...completeLog, status: 'completed' }).success).toBe(
+      true,
+    );
+    expect(v.safeParse(TaskLogsModel.create, { ...completeLog, status: 'pending' }).success).toBe(
+      false,
+    );
+    expect(v.safeParse(TaskLogsModel.create, { ...completeLog, status: 'skipped' }).success).toBe(
+      false,
+    );
   });
 
   test('does not accept localDate as part of the create contract', () => {

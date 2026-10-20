@@ -17,7 +17,7 @@ export const taskLogs = new Elysia({
       response: { 200: TaskLogsModel.response },
       detail: { summary: 'Registrar ejecución', description: 'Upsert por (taskId, fecha).' },
     },
-    ({ body, userId }) => TaskLogsService.create(userId, body)
+    ({ body, userId }) => TaskLogsService.create(userId, body),
   )
   .get(
     '/',
@@ -29,8 +29,7 @@ export const taskLogs = new Elysia({
         description: 'Respuesta: { items, nextCursor }. Filtro opcional por date.',
       },
     },
-    ({ query, userId }) =>
-      TaskLogsService.list(userId, query.limit, query.cursor, query.date)
+    ({ query, userId }) => TaskLogsService.list(userId, query.limit, query.cursor, query.date),
   )
   .get(
     '/:id',
@@ -39,7 +38,7 @@ export const taskLogs = new Elysia({
       response: { 200: TaskLogsModel.response },
       detail: { summary: 'Detalle de log' },
     },
-    ({ params, userId }) => TaskLogsService.getById(userId, params.id)
+    ({ params, userId }) => TaskLogsService.getById(userId, params.id),
   )
   .patch(
     '/:id',
@@ -49,5 +48,5 @@ export const taskLogs = new Elysia({
       response: { 200: TaskLogsModel.response },
       detail: { summary: 'Actualizar log' },
     },
-    ({ params, body, userId }) => TaskLogsService.update(userId, params.id, body)
+    ({ params, body, userId }) => TaskLogsService.update(userId, params.id, body),
   );

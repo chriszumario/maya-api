@@ -7,10 +7,10 @@ afterEach(() => mock.restore());
 
 describe('NutritionService.list', () => {
   test('rejects an invalid cursor', async () => {
-    await expectApiError(
-      NutritionService.list(17, 20, 'invalid-cursor'),
-      { status: 400, type: 'INVALID_CURSOR' }
-    );
+    await expectApiError(NutritionService.list(17, 20, 'invalid-cursor'), {
+      status: 400,
+      type: 'INVALID_CURSOR',
+    });
   });
 
   test('fetches limit plus one with a date so truncation is recoverable', async () => {

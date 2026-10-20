@@ -22,7 +22,7 @@ const dailyTask = {
 
 const mockUpdateTransaction = (returnedTask: typeof dailyTask | null = dailyTask) => {
   let persistedPatch: Record<string, unknown> | undefined;
-  const returning = mock(async () => returnedTask ? [returnedTask] : []);
+  const returning = mock(async () => (returnedTask ? [returnedTask] : []));
   const where = mock(() => ({ returning }));
   const set = mock((patch: Record<string, unknown>) => {
     persistedPatch = patch;
@@ -37,37 +37,51 @@ const mockUpdateTransaction = (returnedTask: typeof dailyTask | null = dailyTask
 };
 
 describe('TasksService schedule transitions', () => {
-  test.serial('does not create a task when the goal is terminal inside the transaction', async () => {
-    spyOn(db.query.users, 'findFirst').mockResolvedValue({ timezone: 'America/La_Paz' } as never);
-    const insert = mock();
-    spyOn(db, 'transaction').mockImplementation(async (callback) => callback({
-      query: { goals: { findFirst: async () => ({ id: 4, status: 'completed' }) } },
-      insert,
-    } as never));
+  test.serial(
+    'does not create a task when the goal is terminal inside the transaction',
+    async () => {
+      spyOn(db.query.users, 'findFirst').mockResolvedValue({ timezone: 'America/La_Paz' } as never);
+      const insert = mock();
+      spyOn(db, 'transaction').mockImplementation(async (callback) =>
+        callback({
+          query: { goals: { findFirst: async () => ({ id: 4, status: 'completed' }) } },
+          insert,
+        } as never),
+      );
 
-    await expectApiError(TasksService.create(3, 4, {
-      title: 'Training',
-      estimatedMinutes: 30,
-      startTime: '08:00',
-      frequency: 'daily',
-    }), { status: 409, type: 'GOAL_TERMINAL' });
-    expect(insert).not.toHaveBeenCalled();
-  });
+      await expectApiError(
+        TasksService.create(3, 4, {
+          title: 'Training',
+          estimatedMinutes: 30,
+          startTime: '08:00',
+          frequency: 'daily',
+        }),
+        { status: 409, type: 'GOAL_TERMINAL' },
+      );
+      expect(insert).not.toHaveBeenCalled();
+    },
+  );
 
   test.serial('requires recurrenceMask when changing to weekly', async () => {
     spyOn(db.query.tasks, 'findFirst').mockResolvedValue(dailyTask);
 
-    await expectApiError(TasksService.update(3, 12, {
-      frequency: 'weekly',
-    }), { status: 400, type: 'INVALID_TASK_SCHEDULE' });
+    await expectApiError(
+      TasksService.update(3, 12, {
+        frequency: 'weekly',
+      }),
+      { status: 400, type: 'INVALID_TASK_SCHEDULE' },
+    );
   });
 
   test.serial('rejects a non-zero recurrenceMask for daily tasks', async () => {
     spyOn(db.query.tasks, 'findFirst').mockResolvedValue(dailyTask);
 
-    await expectApiError(TasksService.update(3, 12, {
-      recurrenceMask: 1,
-    }), { status: 400, type: 'INVALID_TASK_SCHEDULE' });
+    await expectApiError(
+      TasksService.update(3, 12, {
+        recurrenceMask: 1,
+      }),
+      { status: 400, type: 'INVALID_TASK_SCHEDULE' },
+    );
   });
 
   test.serial('resets recurrenceMask when changing to daily', async () => {
@@ -81,9 +95,11 @@ describe('TasksService schedule transitions', () => {
     spyOn(db.query.users, 'findFirst').mockResolvedValue({ timezone: 'America/La_Paz' } as never);
     const rebuild = spyOn(DailyMetricsService, 'rebuild').mockResolvedValue({} as never);
 
-    await expect(TasksService.update(3, 12, {
-      frequency: 'daily',
-    })).resolves.toEqual(returnedTask);
+    await expect(
+      TasksService.update(3, 12, {
+        frequency: 'daily',
+      }),
+    ).resolves.toEqual(returnedTask);
     expect(getPatch()).toMatchObject({
       frequency: 'daily',
       recurrenceMask: 0,

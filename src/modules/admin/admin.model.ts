@@ -59,7 +59,7 @@ export const AdminModel = {
         name: v.string(),
         email: v.string(),
         activityCount: v.number(),
-      })
+      }),
     ),
     system: v.object({
       version: v.string(),

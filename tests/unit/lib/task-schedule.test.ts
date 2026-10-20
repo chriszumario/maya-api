@@ -13,19 +13,26 @@ describe('isTaskScheduledOnDate', () => {
     const sunday = '2026-08-23';
 
     expect(isTaskScheduledOnDate(task(), monday)).toBe(true);
-    expect(isTaskScheduledOnDate(task({ frequency: 'weekly', recurrenceMask: 31 }), monday))
-      .toBe(true);
-    expect(isTaskScheduledOnDate(task({ frequency: 'weekly', recurrenceMask: 64 }), monday))
-      .toBe(false);
-    expect(isTaskScheduledOnDate(task({ frequency: 'weekly', recurrenceMask: 64 }), sunday))
-      .toBe(true);
-    expect(isTaskScheduledOnDate(task({ frequency: 'monthly', recurrenceMask: 24 }), monday))
-      .toBe(true);
-    expect(isTaskScheduledOnDate(task({ frequency: 'monthly', recurrenceMask: 31 }), monday))
-      .toBe(false);
-    expect(isTaskScheduledOnDate(task({ frequency: 'once', recurrenceMask: 20260824 }), monday))
-      .toBe(true);
-    expect(isTaskScheduledOnDate(task({ frequency: 'once', recurrenceMask: 20260825 }), monday))
-      .toBe(false);
+    expect(isTaskScheduledOnDate(task({ frequency: 'weekly', recurrenceMask: 31 }), monday)).toBe(
+      true,
+    );
+    expect(isTaskScheduledOnDate(task({ frequency: 'weekly', recurrenceMask: 64 }), monday)).toBe(
+      false,
+    );
+    expect(isTaskScheduledOnDate(task({ frequency: 'weekly', recurrenceMask: 64 }), sunday)).toBe(
+      true,
+    );
+    expect(isTaskScheduledOnDate(task({ frequency: 'monthly', recurrenceMask: 24 }), monday)).toBe(
+      true,
+    );
+    expect(isTaskScheduledOnDate(task({ frequency: 'monthly', recurrenceMask: 31 }), monday)).toBe(
+      false,
+    );
+    expect(
+      isTaskScheduledOnDate(task({ frequency: 'once', recurrenceMask: 20260824 }), monday),
+    ).toBe(true);
+    expect(
+      isTaskScheduledOnDate(task({ frequency: 'once', recurrenceMask: 20260825 }), monday),
+    ).toBe(false);
   });
 });

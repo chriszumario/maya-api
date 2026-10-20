@@ -10,16 +10,18 @@ describe('HTTP tasks', () => {
   test.serial('rejects an inconsistent schedule before calling the service', async () => {
     const token = await issueAccessToken(17);
     const create = spyOn(TasksService, 'create');
-    const response = await app.handle(jsonRequest(
-      '/goals/5/tasks/',
-      {
-        title: 'Weekly training',
-        frequency: 'weekly',
-        estimatedMinutes: 30,
-        startTime: '08:00',
-      },
-      { headers: bearer(token) },
-    ));
+    const response = await app.handle(
+      jsonRequest(
+        '/goals/5/tasks/',
+        {
+          title: 'Weekly training',
+          frequency: 'weekly',
+          estimatedMinutes: 30,
+          startTime: '08:00',
+        },
+        { headers: bearer(token) },
+      ),
+    );
 
     expect(response.status).toBe(422);
     expect(create).not.toHaveBeenCalled();
@@ -35,11 +37,9 @@ describe('HTTP tasks', () => {
       estimatedMinutes: 30,
       startTime: '08:00',
     };
-    const response = await app.handle(jsonRequest(
-      '/goals/5/tasks/',
-      body,
-      { headers: bearer(token) },
-    ));
+    const response = await app.handle(
+      jsonRequest('/goals/5/tasks/', body, { headers: bearer(token) }),
+    );
 
     expect(response.status).toBe(201);
     expect(create).toHaveBeenCalledWith(17, 5, body);

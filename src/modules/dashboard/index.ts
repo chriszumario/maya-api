@@ -20,7 +20,7 @@ export const dashboard = new Elysia({
         description: 'Estado agregado de metas, tareas del día y check-in, sin listas de recursos.',
       },
     },
-    ({ query, userId }) => DashboardService.getSummary(userId, query.date)
+    ({ query, userId }) => DashboardService.getSummary(userId, query.date),
   )
   .get(
     '/insights',
@@ -31,7 +31,7 @@ export const dashboard = new Elysia({
         description: 'Prioridades, alertas, tendencias interpretadas y recomendaciones.',
       },
     },
-    ({ userId }) => DashboardService.getInsights(userId)
+    ({ userId }) => DashboardService.getInsights(userId),
   )
   .get(
     '/trends',
@@ -43,5 +43,5 @@ export const dashboard = new Elysia({
         description: 'Datos diarios agregados para gráficas de tareas, metas y actividad.',
       },
     },
-    ({ query, userId }) => DashboardService.getTrends(userId, query.days, query.endDate)
+    ({ query, userId }) => DashboardService.getTrends(userId, query.days, query.endDate),
   );

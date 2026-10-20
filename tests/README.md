@@ -7,7 +7,7 @@ tests/
 ├── fixtures/             # Objetos de dominio compartidos y estables
 ├── helpers/              # Utilidades pequeñas para HTTP, Drizzle y aserciones
 ├── integration/http/     # Requests reales contra app.handle
-├── integration/db/       # Migraciones e integridad con SQLite en memoria
+├── integration/db/       # Persistencia de métricas con SQLite en memoria
 ├── unit/lib/             # Funciones transversales puras
 ├── unit/modules/         # Modelos y servicios agrupados por módulo
 └── setup.ts              # Entorno ficticio; nunca usa Turso o Groq reales
@@ -19,11 +19,14 @@ tests/
 - Los tests verifican comportamiento observable, no detalles internos.
 - Los spies sobre singletons de Drizzle se ejecutan con `test.serial`.
 - La persistencia y proveedores externos se aíslan en el límite de integración.
+- No se comprueba la existencia de migraciones en `drizzle/` como parte de la suite.
 - Los fixtures se comparten solo cuando representan el mismo contrato de dominio.
 - `integration/http/security.test.ts` ejecuta autenticación, autorización, rotación
   y revocación con SQL real sobre SQLite en memoria. `helpers/sqlite.ts` sustituye
   únicamente el transporte Turso: conserva consultas, mappers y transacciones de
   Drizzle. No simula la concurrencia ni el protocolo de un servidor Turso remoto.
+  Actualmente necesita el esquema de `drizzle/` para preparar la base; si falta,
+  estas pruebas fallan durante su inicialización.
 - En `bun test`, los escenarios de Redis bloqueado, rate limiting en producción y
   CORS usan dobles controlados. Esta suite no requiere servicios externos ni credenciales reales.
 

@@ -17,8 +17,7 @@ export const nutrition = new Elysia({
       response: { 201: NutritionModel.response },
       detail: { summary: 'Registrar comida' },
     },
-    async ({ body, userId, status }) =>
-      status(201, await NutritionService.create(userId, body))
+    async ({ body, userId, status }) => status(201, await NutritionService.create(userId, body)),
   )
   .get(
     '/',
@@ -30,8 +29,7 @@ export const nutrition = new Elysia({
         description: 'Respuesta: { items, nextCursor }. Filtro opcional por date.',
       },
     },
-    ({ query, userId }) =>
-      NutritionService.list(userId, query.limit, query.cursor, query.date)
+    ({ query, userId }) => NutritionService.list(userId, query.limit, query.cursor, query.date),
   )
   .get(
     '/:id',
@@ -40,7 +38,7 @@ export const nutrition = new Elysia({
       response: { 200: NutritionModel.response },
       detail: { summary: 'Detalle de registro' },
     },
-    ({ params, userId }) => NutritionService.getById(userId, params.id)
+    ({ params, userId }) => NutritionService.getById(userId, params.id),
   )
   .patch(
     '/:id',
@@ -50,7 +48,7 @@ export const nutrition = new Elysia({
       response: { 200: NutritionModel.response },
       detail: { summary: 'Actualizar registro' },
     },
-    ({ params, body, userId }) => NutritionService.update(userId, params.id, body)
+    ({ params, body, userId }) => NutritionService.update(userId, params.id, body),
   )
   .delete(
     '/:id',
@@ -59,5 +57,5 @@ export const nutrition = new Elysia({
       response: { 200: NutritionModel.deletedResponse },
       detail: { summary: 'Eliminar registro' },
     },
-    ({ params, userId }) => NutritionService.delete(userId, params.id)
+    ({ params, userId }) => NutritionService.delete(userId, params.id),
   );

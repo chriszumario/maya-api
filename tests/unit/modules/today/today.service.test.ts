@@ -90,18 +90,20 @@ describe('TodayService.getToday', () => {
       durationMinutes: 12,
     });
     expect(insert).not.toHaveBeenCalled();
-    expect(findTasks).toHaveBeenCalledWith(expect.objectContaining({
-      where: {
-        isActive: true,
-        goal: { userId: 17, status: 'in_progress' },
-      },
-      columns: expect.objectContaining({
-        id: true,
-        title: true,
-        estimatedMinutes: true,
-        startTime: true,
+    expect(findTasks).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          isActive: true,
+          goal: { userId: 17, status: 'in_progress' },
+        },
+        columns: expect.objectContaining({
+          id: true,
+          title: true,
+          estimatedMinutes: true,
+          startTime: true,
+        }),
       }),
-    }));
+    );
     expect(findLogs).toHaveBeenCalledWith({
       where: { localDate: today, task: { goal: { userId: 17 } } },
       columns: {

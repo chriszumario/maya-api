@@ -6,8 +6,14 @@ import { db } from '@/db/drizzle';
 function bindings(value: unknown): SQLQueryBindings[] {
   if (!Array.isArray(value)) throw new TypeError('Expected SQL parameters');
   return value.map((item: unknown) => {
-    if (item === null || typeof item === 'string' || typeof item === 'number'
-      || typeof item === 'bigint' || item instanceof Uint8Array) return item;
+    if (
+      item === null ||
+      typeof item === 'string' ||
+      typeof item === 'number' ||
+      typeof item === 'bigint' ||
+      item instanceof Uint8Array
+    )
+      return item;
     throw new TypeError('Unsupported SQL parameter');
   });
 }
@@ -24,11 +30,14 @@ export async function useSqliteTransport() {
 
   function attach(client: Connection | Transaction) {
     spyOn(client, 'run').mockImplementation(async (query, ...params: unknown[]) =>
-      sqlite.query(query).run(...bindings(params)));
+      sqlite.query(query).run(...bindings(params)),
+    );
     spyOn(client, 'all').mockImplementation(async (query, ...params: unknown[]) =>
-      sqlite.query(query).all(...bindings(params)));
+      sqlite.query(query).all(...bindings(params)),
+    );
     spyOn(client, 'get').mockImplementation(async (query, ...params: unknown[]) =>
-      sqlite.query(query).get(...bindings(params)));
+      sqlite.query(query).get(...bindings(params)),
+    );
     spyOn(client, 'prepare').mockImplementation(async (query) => {
       const statement = new Statement(config, query);
       let raw = false;
@@ -36,14 +45,19 @@ export async function useSqliteTransport() {
         raw = enabled;
         return statement;
       });
-      spyOn(statement, 'all').mockImplementation(async (params: unknown = []) => raw
-        ? sqlite.query(query).values(...bindings(params))
-        : sqlite.query(query).all(...bindings(params)));
-      spyOn(statement, 'get').mockImplementation(async (params: unknown = []) => raw
-        ? sqlite.query(query).values(...bindings(params))[0]
-        : sqlite.query(query).get(...bindings(params)));
+      spyOn(statement, 'all').mockImplementation(async (params: unknown = []) =>
+        raw
+          ? sqlite.query(query).values(...bindings(params))
+          : sqlite.query(query).all(...bindings(params)),
+      );
+      spyOn(statement, 'get').mockImplementation(async (params: unknown = []) =>
+        raw
+          ? sqlite.query(query).values(...bindings(params))[0]
+          : sqlite.query(query).get(...bindings(params)),
+      );
       spyOn(statement, 'run').mockImplementation(async (params: unknown = []) =>
-        sqlite.query(query).run(...bindings(params)));
+        sqlite.query(query).run(...bindings(params)),
+      );
       return statement;
     });
   }

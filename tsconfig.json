@@ -27,6 +27,6 @@
     "noPropertyAccessFromIndexSignature": false,
     "paths": {
       "@/*": ["./src/*"]
-    },
+    }
   }
 }

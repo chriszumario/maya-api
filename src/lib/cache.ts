@@ -10,7 +10,7 @@ export async function getCached<T>(key: string): Promise<T | null> {
   return withTimeout(async () => {
     await ensureRedisConnection();
     const value = await redis.send('GET', [cacheKey(key)]);
-    return value === null ? null : JSON.parse(value as string) as T;
+    return value === null ? null : (JSON.parse(value as string) as T);
   }, REDIS_TIMEOUT_MS);
 }
 
@@ -70,6 +70,10 @@ export const cache = {
   },
 };
 
-export function getOrSetCached<T>(key: string, ttlSeconds: number, load: () => Promise<T>): Promise<T> {
+export function getOrSetCached<T>(
+  key: string,
+  ttlSeconds: number,
+  load: () => Promise<T>,
+): Promise<T> {
   return cache.remember(key, ttlSeconds, load);
 }

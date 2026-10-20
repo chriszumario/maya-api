@@ -22,14 +22,14 @@ cp .env.example .env
 
 Completa en `.env` las variables requeridas:
 
-| Variable | Uso |
-| --- | --- |
-| `APP_ENV` | `development` o `production`; en desarrollo se omiten los límites Redis |
-| `REDIS_URL` | Conexión Redis/Valkey para rate limiting y caché de lectura |
-| `JWT_SECRET` | Secreto JWT aleatorio de al menos 32 caracteres; los placeholders se rechazan |
+| Variable                          | Uso                                                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------------------ |
+| `APP_ENV`                         | `development` o `production`; en desarrollo se omiten los límites Redis                    |
+| `REDIS_URL`                       | Conexión Redis/Valkey para rate limiting y caché de lectura                                |
+| `JWT_SECRET`                      | Secreto JWT aleatorio de al menos 32 caracteres; los placeholders se rechazan              |
 | `REFRESH_ROTATION_ENCRYPTION_KEY` | Clave aleatoria de 32 bytes en base64url para cifrar temporalmente rotaciones idempotentes |
-| `TURSO_DATABASE_URL` | URL de la base de datos Turso |
-| `TURSO_AUTH_TOKEN` | Token de acceso a Turso |
+| `TURSO_DATABASE_URL`              | URL de la base de datos Turso                                                              |
+| `TURSO_AUTH_TOKEN`                | Token de acceso a Turso                                                                    |
 
 Opcionales: `PORT` (4000 por defecto), `MAX_REQUEST_BODY_BYTES` (1 MiB),
 `APP_TIMEZONE` (`America/La_Paz`, zona predeterminada del seed; las fechas de cada usuario usan su propia zona),
@@ -94,6 +94,39 @@ operación establece una nueva conexión; no se encolan comandos offline.
 
 ## Verificación y producción
 
+### Lint y formato nativos de Bun
+
+Los scripts usan directamente los comandos nativos de Bun:
+
+```bash
+bun run lint
+bun run lint:fix
+bun run format
+bun run format:check
+```
+
+Las reglas y el estilo se definen en `bunfig.toml`, sin oxlint, oxfmt ni Prettier
+como dependencias. Lint rechaza también las advertencias y los tipos `any`
+explícitos. El formato usa dos espacios, comillas simples y punto y coma; excluye
+las migraciones generadas. `format:check` comprueba sin modificar archivos.
+
+Se requiere una versión con `bun lint`, `bun fmt` y `bun check` nativos
+(comprobado con `1.4.4-canary.1+ea6a2c7b7`). Bun estable `1.4.3` no los ofrece.
+Los scripts no instalan ni actualizan Bun. Lint usa `--no-script` para invocar
+explícitamente el comando nativo y `--max-warnings 0` para rechazar advertencias.
+`typecheck` usa `bun check`, sin depender de un ejecutable `tsc` externo.
+
+`bunfig.toml` conserva solo las preferencias que difieren de los valores por
+defecto: ancho de 100 columnas, comillas simples y exclusión de migraciones
+generadas. Dos espacios, punto y coma, comas finales y finales de línea LF ya son
+los valores predeterminados del formateador. La regla `no-explicit-any` conserva
+la restricción del antiguo linter; las demás reglas son las nativas de Bun.
+La sección `[test]` limita las pruebas a `tests` y precarga su entorno común.
+`verify` incluye la comprobación de formato sin reescribir archivos.
+
+Referencias: [Bun lint](https://bun.com/docs/lint) y
+[Bun fmt](https://bun.com/docs/format).
+
 ### Caché de lectura
 
 - `/dashboard/trends`: TTL de 60 segundos, separado por usuario, rango y fecha local actual.
@@ -108,7 +141,7 @@ bun run verify
 bun run start
 ```
 
-`verify` ejecuta typecheck, lint, tests, validación de migraciones, build y una prueba de arranque del bundle. El build usa el plugin AOT de Elysia y genera la salida en `dist/`.
+`verify` ejecuta typecheck, lint, comprobación de formato, tests, validación de migraciones, build y una prueba de arranque del bundle. El build usa el plugin AOT de Elysia y genera la salida en `dist/`.
 
 `bun run test:services` ejecuta pruebas adicionales con servidores reales de
 libSQL y Redis/Valkey aislados. Requiere `sqld` y `redis-server` (>=7.2) o

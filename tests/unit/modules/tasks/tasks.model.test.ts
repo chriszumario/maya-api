@@ -15,12 +15,14 @@ describe('TaskModel schedule validation', () => {
   });
 
   test('accepts zero estimated minutes', () => {
-    expect(v.safeParse(TaskModel.createBody, {
-      title: 'Levantarse',
-      frequency: 'daily',
-      estimatedMinutes: 0,
-      startTime: '04:57',
-    }).success).toBe(true);
+    expect(
+      v.safeParse(TaskModel.createBody, {
+        title: 'Levantarse',
+        frequency: 'daily',
+        estimatedMinutes: 0,
+        startTime: '04:57',
+      }).success,
+    ).toBe(true);
   });
 
   test.each([

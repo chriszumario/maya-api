@@ -22,7 +22,7 @@ export const tasks = new Elysia({
       },
     },
     async ({ params, body, status, userId }) =>
-      status(201, await TasksService.create(userId, params.id, body))
+      status(201, await TasksService.create(userId, params.id, body)),
   )
   .get(
     '/',
@@ -34,8 +34,7 @@ export const tasks = new Elysia({
         summary: 'Listar tareas de una meta',
       },
     },
-    ({ params, query, userId }) =>
-      TasksService.list(userId, params.id, query.limit, query.cursor)
+    ({ params, query, userId }) => TasksService.list(userId, params.id, query.limit, query.cursor),
   );
 
 export const tasksById = new Elysia({
@@ -55,8 +54,7 @@ export const tasksById = new Elysia({
         summary: 'Actualizar tarea',
       },
     },
-    async ({ params, body, userId }) =>
-      TasksService.update(userId, params.id, body)
+    async ({ params, body, userId }) => TasksService.update(userId, params.id, body),
   )
   .delete(
     '/:id',
@@ -67,5 +65,5 @@ export const tasksById = new Elysia({
         summary: 'Eliminar tarea',
       },
     },
-    ({ params, userId }) => TasksService.delete(userId, params.id)
+    ({ params, userId }) => TasksService.delete(userId, params.id),
   );

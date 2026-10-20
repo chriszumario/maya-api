@@ -15,4 +15,3 @@ export function whereRows<T>(rows: T[]) {
     }),
   };
 }
-

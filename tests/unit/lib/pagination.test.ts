@@ -29,15 +29,19 @@ describe('date/id cursor pagination', () => {
       filter: '2026-08-23',
     }).nextCursor!;
 
-    expect(decodeDateIdCursor(cursor, {
-      scope: 'nutrition',
-      filter: '2026-08-23',
-    })).toEqual({ localDate: '2026-08-23', id: 8 });
+    expect(
+      decodeDateIdCursor(cursor, {
+        scope: 'nutrition',
+        filter: '2026-08-23',
+      }),
+    ).toEqual({ localDate: '2026-08-23', id: 8 });
     expect(decodeDateIdCursor(cursor, { scope: 'journal' })).toBeNull();
-    expect(decodeDateIdCursor(cursor, {
-      scope: 'nutrition',
-      filter: '2026-08-22',
-    })).toBeNull();
+    expect(
+      decodeDateIdCursor(cursor, {
+        scope: 'nutrition',
+        filter: '2026-08-22',
+      }),
+    ).toBeNull();
   });
 
   test.each([

@@ -28,12 +28,15 @@ const PUBLIC_USER_COLUMNS = {
 
 export abstract class AuthService {
   static async register(data: RegisterInput): Promise<void> {
-    await db.insert(users).values({
-      name: data.name,
-      email: data.email,
-      passwordHash: await hashPassword(data.password),
-      timezone: data.timezone,
-    }).onConflictDoNothing();
+    await db
+      .insert(users)
+      .values({
+        name: data.name,
+        email: data.email,
+        passwordHash: await hashPassword(data.password),
+        timezone: data.timezone,
+      })
+      .onConflictDoNothing();
   }
 
   static async login(data: LoginInput) {
@@ -64,18 +67,23 @@ export abstract class AuthService {
       const [currentUser] = await tx
         .select({ id: users.id })
         .from(users)
-        .where(and(
-          eq(users.id, user.id),
-          eq(users.passwordHash, user.passwordHash),
-          eq(users.isActive, true),
-        ))
+        .where(
+          and(
+            eq(users.id, user.id),
+            eq(users.passwordHash, user.passwordHash),
+            eq(users.isActive, true),
+          ),
+        )
         .limit(1);
 
       if (!currentUser) return undefined;
       const refreshToken = await RefreshTokenService.issue(user.id, tx);
       // Issuance may evict a session; read the version after its security update.
-      const [version] = await tx.select({ tokenVersion: users.tokenVersion })
-        .from(users).where(eq(users.id, user.id)).limit(1);
+      const [version] = await tx
+        .select({ tokenVersion: users.tokenVersion })
+        .from(users)
+        .where(eq(users.id, user.id))
+        .limit(1);
       if (!version) throw new Error('Session user disappeared during issuance');
       return { refreshToken, tokenVersion: version.tokenVersion };
     });
@@ -126,7 +134,10 @@ export abstract class AuthService {
         throw new ApiError(404, 'Usuario no encontrado', 'USER_NOT_FOUND');
       }
 
-      if (!data.currentPassword || !(await verifyPassword(data.currentPassword, user.passwordHash))) {
+      if (
+        !data.currentPassword ||
+        !(await verifyPassword(data.currentPassword, user.passwordHash))
+      ) {
         throw new ApiError(400, 'La contraseña actual es incorrecta', 'INVALID_PASSWORD');
       }
 
@@ -137,12 +148,14 @@ export abstract class AuthService {
     const [updatedUser] = await db
       .update(users)
       .set(changes)
-      .where(and(
-        eq(users.id, userId),
-        verifiedPasswordHash === undefined
-          ? undefined
-          : eq(users.passwordHash, verifiedPasswordHash),
-      ))
+      .where(
+        and(
+          eq(users.id, userId),
+          verifiedPasswordHash === undefined
+            ? undefined
+            : eq(users.passwordHash, verifiedPasswordHash),
+        ),
+      )
       .returning(PUBLIC_USER_COLUMNS);
 
     if (!updatedUser) {
@@ -157,7 +170,11 @@ export abstract class AuthService {
 
   static async updatePassword(userId: number, data: PasswordInput): Promise<void> {
     if (data.newPassword === data.currentPassword) {
-      throw new ApiError(400, 'La nueva contraseña debe ser distinta a la actual', 'INVALID_PASSWORD');
+      throw new ApiError(
+        400,
+        'La nueva contraseña debe ser distinta a la actual',
+        'INVALID_PASSWORD',
+      );
     }
 
     const user = await db.query.users.findFirst({

@@ -16,7 +16,7 @@ export const admin = new Elysia({ prefix: '/admin', name: 'module.admin', tags: 
         description: 'Usuarios, actividad, usuarios destacados e información del sistema.',
       },
     },
-    () => AdminService.getStats()
+    () => AdminService.getStats(),
   )
   .get(
     '/users',
@@ -25,7 +25,7 @@ export const admin = new Elysia({ prefix: '/admin', name: 'module.admin', tags: 
       response: { 200: AdminModel.userPage },
       detail: { summary: 'Listar todos los usuarios' },
     },
-    ({ query }) => AdminService.listUsers(query.limit, query.cursor)
+    ({ query }) => AdminService.listUsers(query.limit, query.cursor),
   )
   .get(
     '/users/pending',
@@ -34,25 +34,31 @@ export const admin = new Elysia({ prefix: '/admin', name: 'module.admin', tags: 
       response: { 200: AdminModel.userPage },
       detail: { summary: 'Listar usuarios pendientes de aprobación' },
     },
-    ({ query }) => AdminService.listPendingUsers(query.limit, query.cursor)
+    ({ query }) => AdminService.listPendingUsers(query.limit, query.cursor),
   )
   .post(
     '/users/:id/approve',
     {
       params: AdminModel.params,
       response: { 200: AdminModel.user },
-      detail: { summary: 'Aprobar usuario', description: 'Cambia isActive a true. El usuario podrá hacer login.' },
+      detail: {
+        summary: 'Aprobar usuario',
+        description: 'Cambia isActive a true. El usuario podrá hacer login.',
+      },
     },
-    ({ params }) => AdminService.approveUser(params.id)
+    ({ params }) => AdminService.approveUser(params.id),
   )
   .post(
     '/users/:id/reject',
     {
       params: AdminModel.params,
       response: { 200: AdminModel.deletedResponse },
-      detail: { summary: 'Rechazar usuario', description: 'Elimina el usuario de la DB. Puede re-registrarse.' },
+      detail: {
+        summary: 'Rechazar usuario',
+        description: 'Elimina el usuario de la DB. Puede re-registrarse.',
+      },
     },
-    ({ params, userId }) => AdminService.rejectUser(params.id, userId)
+    ({ params, userId }) => AdminService.rejectUser(params.id, userId),
   )
   .patch(
     '/users/:id/admin',
@@ -65,8 +71,7 @@ export const admin = new Elysia({ prefix: '/admin', name: 'module.admin', tags: 
         description: 'Promueve o degrada usuario. Revoca sesiones. No puedes cambiarte a ti mismo.',
       },
     },
-    ({ params, body, userId }) =>
-      AdminService.changeAdmin(params.id, body.isAdmin, userId)
+    ({ params, body, userId }) => AdminService.changeAdmin(params.id, body.isAdmin, userId),
   )
   .get(
     '/users/:id/sessions',
@@ -75,17 +80,21 @@ export const admin = new Elysia({ prefix: '/admin', name: 'module.admin', tags: 
       response: { 200: AdminModel.sessions },
       detail: { summary: 'Ver sesiones activas del usuario' },
     },
-    ({ params }) => RefreshTokenService.getActiveSessions(params.id)
+    ({ params }) => RefreshTokenService.getActiveSessions(params.id),
   )
   .delete(
     '/users/:id/sessions',
     {
       params: AdminModel.params,
       response: { 200: AdminModel.revokedResponse },
-      detail: { summary: 'Revocar sesiones del usuario', description: 'Revoca todos los refresh tokens e invalida los access JWT del usuario en una transacción.' },
+      detail: {
+        summary: 'Revocar sesiones del usuario',
+        description:
+          'Revoca todos los refresh tokens e invalida los access JWT del usuario en una transacción.',
+      },
     },
     async ({ params }) => {
       await AdminService.revokeSessions(params.id);
       return { status: 'sessions_revoked' as const };
-    }
+    },
   );

@@ -7,7 +7,8 @@ describe('date utilities', () => {
   test('uses the user timezone across UTC midnight and daylight saving changes', () => {
     const instant = Temporal.Instant.from('2026-03-08T04:30:00Z');
     spyOn(Temporal.Now, 'zonedDateTimeISO').mockImplementation((zone = 'UTC') =>
-      instant.toZonedDateTimeISO(zone));
+      instant.toZonedDateTimeISO(zone),
+    );
     expect(computeLocalDate('America/New_York')).toBe('2026-03-07');
     expect(computeLocalDate('Asia/Tokyo')).toBe('2026-03-08');
     const beforeDst = Temporal.ZonedDateTime.from('2026-03-07T12:00:00-05:00[America/New_York]');

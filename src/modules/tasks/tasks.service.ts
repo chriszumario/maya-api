@@ -13,10 +13,7 @@ import {
 import { DailyMetricsService } from '@/modules/today/daily-metrics.service';
 import type { TaskModel } from './tasks.model';
 
-type TaskSchedulePatch = Partial<Pick<
-  typeof tasks.$inferInsert,
-  'frequency' | 'recurrenceMask'
->>;
+type TaskSchedulePatch = Partial<Pick<typeof tasks.$inferInsert, 'frequency' | 'recurrenceMask'>>;
 
 function getSchedulePatch(
   current: Awaited<ReturnType<typeof requireOwnedTask>>,
@@ -27,11 +24,16 @@ function getSchedulePatch(
 
   const frequency = data.frequency ?? current.frequency;
   const frequencyChanged = frequency !== current.frequency;
-  const recurrenceMask = data.recurrenceMask
-    ?? (frequencyChanged ? (frequency === 'daily' ? 0 : undefined) : current.recurrenceMask);
+  const recurrenceMask =
+    data.recurrenceMask ??
+    (frequencyChanged ? (frequency === 'daily' ? 0 : undefined) : current.recurrenceMask);
 
   if (!hasValidTaskSchedule({ frequency, recurrenceMask })) {
-    throw new ApiError(400, 'recurrenceMask no es válido para la frecuencia', 'INVALID_TASK_SCHEDULE');
+    throw new ApiError(
+      400,
+      'recurrenceMask no es válido para la frecuencia',
+      'INVALID_TASK_SCHEDULE',
+    );
   }
 
   return {
@@ -50,10 +52,17 @@ export abstract class TasksService {
       });
       if (!goal) throw new ApiError(404, 'Meta no encontrada', 'GOAL_NOT_FOUND');
       if (goal.status === 'completed' || goal.status === 'cancelled') {
-        throw new ApiError(409, 'No se pueden crear tareas activas en una meta terminal', 'GOAL_TERMINAL');
+        throw new ApiError(
+          409,
+          'No se pueden crear tareas activas en una meta terminal',
+          'GOAL_TERMINAL',
+        );
       }
 
-      const [created] = await tx.insert(tasks).values({ goalId, ...data }).returning();
+      const [created] = await tx
+        .insert(tasks)
+        .values({ goalId, ...data })
+        .returning();
       if (!created) throw new Error('Task insert returned no row');
       await DailyMetricsService.rebuild(userId, localDate, tx);
       return created;
@@ -65,7 +74,8 @@ export abstract class TasksService {
   static async list(userId: number, goalId: number, limit: number, cursor?: string) {
     const context = { scope: 'goal-tasks', filter: String(goalId) } as const;
     const decoded = cursor ? decodeStringIdCursor(cursor, context) : null;
-    if (cursor && !decoded) throw new ApiError(400, 'Cursor de paginación inválido', 'INVALID_CURSOR');
+    if (cursor && !decoded)
+      throw new ApiError(400, 'Cursor de paginación inválido', 'INVALID_CURSOR');
     const goal = await db.query.goals.findFirst({
       where: { id: goalId, userId },
       columns: { id: true },
@@ -78,13 +88,14 @@ export abstract class TasksService {
     const rows = await db
       .select()
       .from(tasks)
-      .where(and(
-        eq(tasks.goalId, goalId),
-        decoded ? afterStringIdCursor(
-          { value: tasks.startTime, id: tasks.id },
-          decoded,
-        ) : undefined,
-      ))
+      .where(
+        and(
+          eq(tasks.goalId, goalId),
+          decoded
+            ? afterStringIdCursor({ value: tasks.startTime, id: tasks.id }, decoded)
+            : undefined,
+        ),
+      )
       .orderBy(asc(tasks.startTime), asc(tasks.id))
       .limit(limit + 1);
     return toStringIdCursorPage(rows, limit, (row) => row.startTime, context);
@@ -93,12 +104,24 @@ export abstract class TasksService {
   static async update(userId: number, taskId: number, data: TaskModel['updateBody']) {
     const owned = await requireOwnedTask(userId, taskId);
     const resultingActive = data.isActive ?? owned.isActive;
-    if (resultingActive && (owned.goal.status === 'completed' || owned.goal.status === 'cancelled')) {
-      throw new ApiError(409, 'No se puede activar una tarea de una meta terminal', 'GOAL_TERMINAL');
+    if (
+      resultingActive &&
+      (owned.goal.status === 'completed' || owned.goal.status === 'cancelled')
+    ) {
+      throw new ApiError(
+        409,
+        'No se puede activar una tarea de una meta terminal',
+        'GOAL_TERMINAL',
+      );
     }
     const patch = { ...data, ...getSchedulePatch(owned, data) };
-    const affectsToday = ['estimatedMinutes', 'startTime', 'frequency', 'recurrenceMask', 'isActive']
-      .some((field) => field in data);
+    const affectsToday = [
+      'estimatedMinutes',
+      'startTime',
+      'frequency',
+      'recurrenceMask',
+      'isActive',
+    ].some((field) => field in data);
     const localDate = affectsToday ? await getUserLocalDate(userId) : undefined;
 
     const task = await db.transaction(async (tx) => {
@@ -108,22 +131,28 @@ export abstract class TasksService {
       });
       if (!goal) throw new ApiError(404, 'Tarea no encontrada', 'TASK_NOT_FOUND');
       if (resultingActive && (goal.status === 'completed' || goal.status === 'cancelled')) {
-        throw new ApiError(409, 'No se puede activar una tarea de una meta terminal', 'GOAL_TERMINAL');
+        throw new ApiError(
+          409,
+          'No se puede activar una tarea de una meta terminal',
+          'GOAL_TERMINAL',
+        );
       }
 
       const [updated] = await tx
         .update(tasks)
         .set(patch)
-        .where(and(
-          eq(tasks.id, owned.id),
-          eq(tasks.title, owned.title),
-          eq(tasks.estimatedMinutes, owned.estimatedMinutes),
-          eq(tasks.startTime, owned.startTime),
-          eq(tasks.frequency, owned.frequency),
-          eq(tasks.recurrenceMask, owned.recurrenceMask),
-          eq(tasks.isActive, owned.isActive),
-          eq(tasks.updatedAt, owned.updatedAt),
-        ))
+        .where(
+          and(
+            eq(tasks.id, owned.id),
+            eq(tasks.title, owned.title),
+            eq(tasks.estimatedMinutes, owned.estimatedMinutes),
+            eq(tasks.startTime, owned.startTime),
+            eq(tasks.frequency, owned.frequency),
+            eq(tasks.recurrenceMask, owned.recurrenceMask),
+            eq(tasks.isActive, owned.isActive),
+            eq(tasks.updatedAt, owned.updatedAt),
+          ),
+        )
         .returning();
       if (updated && affectsToday) {
         await DailyMetricsService.rebuild(userId, localDate!, tx);
@@ -146,15 +175,17 @@ export abstract class TasksService {
     const deleted = await db.transaction(async (tx) => {
       const [row] = await tx
         .delete(tasks)
-        .where(and(
-          eq(tasks.id, owned.id),
-          eq(tasks.title, owned.title),
-          eq(tasks.estimatedMinutes, owned.estimatedMinutes),
-          eq(tasks.startTime, owned.startTime),
-          eq(tasks.frequency, owned.frequency),
-          eq(tasks.recurrenceMask, owned.recurrenceMask),
-          eq(tasks.isActive, owned.isActive),
-        ))
+        .where(
+          and(
+            eq(tasks.id, owned.id),
+            eq(tasks.title, owned.title),
+            eq(tasks.estimatedMinutes, owned.estimatedMinutes),
+            eq(tasks.startTime, owned.startTime),
+            eq(tasks.frequency, owned.frequency),
+            eq(tasks.recurrenceMask, owned.recurrenceMask),
+            eq(tasks.isActive, owned.isActive),
+          ),
+        )
         .returning({ id: tasks.id });
       if (row) await DailyMetricsService.rebuild(userId, localDate, tx);
       return row;

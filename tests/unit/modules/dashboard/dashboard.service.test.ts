@@ -34,12 +34,10 @@ describe('DashboardService.getSummary', () => {
   test.serial('reads task metrics and aggregates goals and calories', async () => {
     const select = spyOn(db, 'select');
     select
-      .mockReturnValueOnce(whereRows([
-        { total: 4, pending: 1, inProgress: 1, completed: 1, cancelled: 1 },
-      ]) as never)
-      .mockReturnValueOnce(whereRows([
-        { mealsLogged: 2, caloriesLogged: 350 },
-      ]) as never);
+      .mockReturnValueOnce(
+        whereRows([{ total: 4, pending: 1, inProgress: 1, completed: 1, cancelled: 1 }]) as never,
+      )
+      .mockReturnValueOnce(whereRows([{ mealsLogged: 2, caloriesLogged: 350 }]) as never);
 
     spyOn(db.query.dailyUserMetrics, 'findFirst').mockResolvedValue({
       plannedTasksCount: 3,
@@ -85,17 +83,25 @@ describe('DashboardService.getSummary', () => {
   test.serial('materializes a missing snapshot when reading today', async () => {
     const select = spyOn(db, 'select');
     select
-      .mockReturnValueOnce(whereRows([{
-        total: 0,
-        pending: 0,
-        inProgress: 0,
-        completed: 0,
-        cancelled: 0,
-      }]) as never)
-      .mockReturnValueOnce(whereRows([{
-        mealsLogged: 0,
-        caloriesLogged: 0,
-      }]) as never);
+      .mockReturnValueOnce(
+        whereRows([
+          {
+            total: 0,
+            pending: 0,
+            inProgress: 0,
+            completed: 0,
+            cancelled: 0,
+          },
+        ]) as never,
+      )
+      .mockReturnValueOnce(
+        whereRows([
+          {
+            mealsLogged: 0,
+            caloriesLogged: 0,
+          },
+        ]) as never,
+      );
     spyOn(db.query.dailyUserMetrics, 'findFirst').mockResolvedValue(undefined);
     spyOn(db.query.journalEntries, 'findFirst').mockResolvedValue(undefined);
     const rebuild = spyOn(DailyMetricsService, 'rebuild').mockResolvedValue({
@@ -116,9 +122,17 @@ describe('DashboardService.getSummary', () => {
     spyOn(db.query.dailyUserMetrics, 'findFirst').mockResolvedValue(undefined);
     const select = spyOn(db, 'select');
     select
-      .mockReturnValueOnce(whereRows([{
-        total: 0, pending: 0, inProgress: 0, completed: 0, cancelled: 0,
-      }]) as never)
+      .mockReturnValueOnce(
+        whereRows([
+          {
+            total: 0,
+            pending: 0,
+            inProgress: 0,
+            completed: 0,
+            cancelled: 0,
+          },
+        ]) as never,
+      )
       .mockReturnValueOnce(whereRows([{ mealsLogged: 0, caloriesLogged: 0 }]) as never);
     spyOn(db.query.journalEntries, 'findFirst').mockResolvedValue(undefined);
 
@@ -142,18 +156,26 @@ describe('DashboardService.getInsights', () => {
     );
     const select = spyOn(db, 'select');
     select
-      .mockReturnValueOnce(orderedRows([{
-        goalId: 5,
-        title: 'Launch product',
-        priority: 'high',
-        status: 'pending',
-      }]) as never)
-      .mockReturnValueOnce(whereRows([{
-        plannedTasks: 10,
-        completedTasks: 1,
-        currentCompletedTasks: 1,
-        previousCompletedTasks: 0,
-      }]) as never);
+      .mockReturnValueOnce(
+        orderedRows([
+          {
+            goalId: 5,
+            title: 'Launch product',
+            priority: 'high',
+            status: 'pending',
+          },
+        ]) as never,
+      )
+      .mockReturnValueOnce(
+        whereRows([
+          {
+            plannedTasks: 10,
+            completedTasks: 1,
+            currentCompletedTasks: 1,
+            previousCompletedTasks: 0,
+          },
+        ]) as never,
+      );
 
     const insights = await DashboardService.getInsights(17);
 
@@ -175,14 +197,16 @@ describe('DashboardService.getInsights', () => {
     spyOn(db.query.dailyUserMetrics, 'findMany').mockResolvedValue([]);
     const rebuild = spyOn(DailyMetricsService, 'rebuild').mockResolvedValue({} as never);
     const select = spyOn(db, 'select');
-    select
-      .mockReturnValueOnce(orderedRows([]) as never)
-      .mockReturnValueOnce(whereRows([{
-        plannedTasks: 0,
-        completedTasks: 0,
-        currentCompletedTasks: 0,
-        previousCompletedTasks: 0,
-      }]) as never);
+    select.mockReturnValueOnce(orderedRows([]) as never).mockReturnValueOnce(
+      whereRows([
+        {
+          plannedTasks: 0,
+          completedTasks: 0,
+          currentCompletedTasks: 0,
+          previousCompletedTasks: 0,
+        },
+      ]) as never,
+    );
 
     const insights = await DashboardService.getInsights(17);
 
@@ -208,8 +232,13 @@ describe('DashboardService.getTrends', () => {
 
     expect(trends.dataComplete).toBe(false);
     expect(trends.missingDates).toEqual([
-      '2026-08-17', '2026-08-18', '2026-08-19', '2026-08-20',
-      '2026-08-21', '2026-08-22', '2026-08-23',
+      '2026-08-17',
+      '2026-08-18',
+      '2026-08-19',
+      '2026-08-20',
+      '2026-08-21',
+      '2026-08-22',
+      '2026-08-23',
     ]);
   });
 
@@ -221,32 +250,50 @@ describe('DashboardService.getTrends', () => {
     );
     const select = spyOn(db, 'select');
     select
-      .mockReturnValueOnce(whereRows([{
-        localDate: '2026-08-20',
-        plannedTasks: 4,
-        plannedMinutes: 120,
-        pending: 0,
-        inProgress: 1,
-        completed: 3,
-        completedMinutes: 95,
-      }]) as never)
-      .mockReturnValueOnce(groupedRows([
-        { status: 'in_progress', value: 2 },
-        { status: 'completed', value: 1 },
-      ]) as never)
-      .mockReturnValueOnce(groupedRows([{
-        localDate: '2026-08-20',
-        value: 1,
-      }]) as never)
-      .mockReturnValueOnce(groupedRows([{
-        localDate: '2026-08-20',
-        value: 1,
-      }]) as never)
-      .mockReturnValueOnce(groupedRows([{
-        localDate: '2026-08-20',
-        meals: 3,
-        calories: 1800,
-      }]) as never);
+      .mockReturnValueOnce(
+        whereRows([
+          {
+            localDate: '2026-08-20',
+            plannedTasks: 4,
+            plannedMinutes: 120,
+            pending: 0,
+            inProgress: 1,
+            completed: 3,
+            completedMinutes: 95,
+          },
+        ]) as never,
+      )
+      .mockReturnValueOnce(
+        groupedRows([
+          { status: 'in_progress', value: 2 },
+          { status: 'completed', value: 1 },
+        ]) as never,
+      )
+      .mockReturnValueOnce(
+        groupedRows([
+          {
+            localDate: '2026-08-20',
+            value: 1,
+          },
+        ]) as never,
+      )
+      .mockReturnValueOnce(
+        groupedRows([
+          {
+            localDate: '2026-08-20',
+            value: 1,
+          },
+        ]) as never,
+      )
+      .mockReturnValueOnce(
+        groupedRows([
+          {
+            localDate: '2026-08-20',
+            meals: 3,
+            calories: 1800,
+          },
+        ]) as never,
+      );
 
     const trends = await DashboardService.getTrends(17, 7, '2026-08-23');
 
@@ -268,7 +315,9 @@ describe('DashboardService.getTrends', () => {
     expect(select).toHaveBeenCalledTimes(5);
     expect(redis.send).toHaveBeenCalledWith('SET', [
       expect.stringContaining('dashboard:trends:v1:17:7:2026-08-23:'),
-      JSON.stringify(trends), 'EX', '60',
+      JSON.stringify(trends),
+      'EX',
+      '60',
     ]);
   });
 });

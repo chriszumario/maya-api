@@ -11,12 +11,12 @@ export const ApiFailureSchema = v.object({
 export const LocalDateSchema = v.pipe(
   v.string(),
   v.isoDate(),
-  v.check(isValidLocalDate, 'Debe ser una fecha real en formato YYYY-MM-DD')
+  v.check(isValidLocalDate, 'Debe ser una fecha real en formato YYYY-MM-DD'),
 );
 
 export const LocalTimeSchema = v.pipe(
   v.string(),
-  v.regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Debe tener formato HH:MM')
+  v.regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Debe tener formato HH:MM'),
 );
 
 export const TimeZoneSchema = v.pipe(

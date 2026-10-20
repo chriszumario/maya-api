@@ -3,16 +3,13 @@ import app from '@/index';
 import { db } from '@/db/drizzle';
 import { AuthService } from '@/modules/auth/auth.service';
 
-export const jsonRequest = (
-  path: string,
-  body: unknown,
-  init: RequestInit = {},
-) => new Request(`http://localhost${path}`, {
-  method: 'POST',
-  ...init,
-  headers: { 'content-type': 'application/json', ...init.headers },
-  body: JSON.stringify(body),
-});
+export const jsonRequest = (path: string, body: unknown, init: RequestInit = {}) =>
+  new Request(`http://localhost${path}`, {
+    method: 'POST',
+    ...init,
+    headers: { 'content-type': 'application/json', ...init.headers },
+    body: JSON.stringify(body),
+  });
 
 export const bearer = (token: string) => ({
   authorization: `Bearer ${token}`,
@@ -44,11 +41,13 @@ export async function issueAccessToken(userId = 17) {
     tokenVersion: 0,
   });
 
-  const response = await app.handle(jsonRequest('/auth/login', {
-    email: 'ana@example.com',
-    password: 'secret-password',
-  }));
+  const response = await app.handle(
+    jsonRequest('/auth/login', {
+      email: 'ana@example.com',
+      password: 'secret-password',
+    }),
+  );
 
   expect(response.status).toBe(200);
-  return (await response.json() as { accessToken: string }).accessToken;
+  return ((await response.json()) as { accessToken: string }).accessToken;
 }

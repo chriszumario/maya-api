@@ -17,8 +17,7 @@ export const goals = new Elysia({
       response: { 201: GoalsModel.response },
       detail: { summary: 'Crear meta' },
     },
-    async ({ body, userId, status }) =>
-      status(201, await GoalsService.create(userId, body))
+    async ({ body, userId, status }) => status(201, await GoalsService.create(userId, body)),
   )
   .get(
     '/',
@@ -27,7 +26,7 @@ export const goals = new Elysia({
       response: { 200: GoalsModel.page },
       detail: { summary: 'Listar metas' },
     },
-    ({ query, userId }) => GoalsService.list(userId, query.limit, query.cursor)
+    ({ query, userId }) => GoalsService.list(userId, query.limit, query.cursor),
   )
   .get(
     '/:id',
@@ -39,7 +38,7 @@ export const goals = new Elysia({
         description: 'Incluye tareas y hasta 10 revisiones recientes.',
       },
     },
-    ({ params, userId }) => GoalsService.getById(userId, params.id)
+    ({ params, userId }) => GoalsService.getById(userId, params.id),
   )
   .patch(
     '/:id',
@@ -49,7 +48,7 @@ export const goals = new Elysia({
       response: { 200: GoalsModel.response },
       detail: { summary: 'Actualizar meta' },
     },
-    ({ params, body, userId }) => GoalsService.update(userId, params.id, body)
+    ({ params, body, userId }) => GoalsService.update(userId, params.id, body),
   )
   .delete(
     '/:id',
@@ -61,7 +60,7 @@ export const goals = new Elysia({
         description: 'Elimina la meta y sus tareas (cascade).',
       },
     },
-    ({ params, userId }) => GoalsService.delete(userId, params.id)
+    ({ params, userId }) => GoalsService.delete(userId, params.id),
   )
   .get(
     '/:id/reviews',
@@ -72,7 +71,7 @@ export const goals = new Elysia({
       detail: { summary: 'Listar revisiones' },
     },
     ({ params, query, userId }) =>
-      GoalsService.listReviews(userId, params.id, query.limit, query.cursor)
+      GoalsService.listReviews(userId, params.id, query.limit, query.cursor),
   )
   .post(
     '/:id/reviews',
@@ -83,5 +82,5 @@ export const goals = new Elysia({
       detail: { summary: 'Crear revisión' },
     },
     async ({ params, body, userId, status }) =>
-      status(201, await GoalsService.createReview(userId, params.id, body))
+      status(201, await GoalsService.createReview(userId, params.id, body)),
   );

@@ -38,7 +38,7 @@ export const JournalModel = {
   }),
   update: v.pipe(
     v.partial(v.object(fields)),
-    v.check((value) => Object.keys(value).length > 0, 'Debe incluir al menos un campo')
+    v.check((value) => Object.keys(value).length > 0, 'Debe incluir al menos un campo'),
   ),
   listQuery: v.object({
     limit: v.optional(NumericQuerySchema(1, 100), '20'),

@@ -47,28 +47,36 @@ export const DashboardModel = {
     periodDays: v.number(),
     dataComplete: v.boolean(),
     missingDates: v.array(LocalDateSchema),
-    priorities: v.array(v.object({
-      goalId: v.number(),
-      title: v.string(),
-      priority,
-      status: goalStatus,
-      reason: v.string(),
-    })),
-    alerts: v.array(v.object({
-      code: v.picklist(['NO_RECENT_PROGRESS', 'LOW_COMPLETION_RATE']),
-      severity: v.picklist(['info', 'warning', 'critical']),
-      message: v.string(),
-    })),
-    trends: v.array(v.object({
-      code: v.picklist(['COMPLETION_UP', 'COMPLETION_DOWN', 'COMPLETION_STABLE']),
-      direction: v.picklist(['up', 'down', 'stable']),
-      change: v.number(),
-      message: v.string(),
-    })),
-    recommendations: v.array(v.object({
-      code: v.picklist(['START_PRIORITY_GOAL', 'REDUCE_DAILY_LOAD']),
-      message: v.string(),
-    })),
+    priorities: v.array(
+      v.object({
+        goalId: v.number(),
+        title: v.string(),
+        priority,
+        status: goalStatus,
+        reason: v.string(),
+      }),
+    ),
+    alerts: v.array(
+      v.object({
+        code: v.picklist(['NO_RECENT_PROGRESS', 'LOW_COMPLETION_RATE']),
+        severity: v.picklist(['info', 'warning', 'critical']),
+        message: v.string(),
+      }),
+    ),
+    trends: v.array(
+      v.object({
+        code: v.picklist(['COMPLETION_UP', 'COMPLETION_DOWN', 'COMPLETION_STABLE']),
+        direction: v.picklist(['up', 'down', 'stable']),
+        change: v.number(),
+        message: v.string(),
+      }),
+    ),
+    recommendations: v.array(
+      v.object({
+        code: v.picklist(['START_PRIORITY_GOAL', 'REDUCE_DAILY_LOAD']),
+        message: v.string(),
+      }),
+    ),
   }),
 
   trends: v.object({

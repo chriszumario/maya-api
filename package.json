@@ -17,9 +17,12 @@
     "test:db": "bun test tests/integration/db",
     "test:services": "bun --preload ./tests/setup.ts tests/services.ts",
     "test:build": "bun --preload ./tests/setup.ts tests/smoke-build.ts",
-    "typecheck": "tsc --noEmit",
-    "lint": "oxlint --deny-warnings src tests build.ts drizzle.config.ts server.js",
-    "verify": "bun run typecheck && bun run lint && bun test && bun run db:check && bun run build && bun run test:build",
+    "typecheck": "bun check",
+    "lint": "bun lint --no-script --max-warnings 0",
+    "lint:fix": "bun lint --no-script --max-warnings 0 --fix",
+    "format": "bun fmt",
+    "format:check": "bun fmt --check",
+    "verify": "bun run typecheck && bun run lint && bun run format:check && bun test && bun run db:check && bun run build && bun run test:build",
     "db:generate": "drizzle-kit generate",
     "db:seed": "bun run src/db/seed.ts",
     "db:push": "drizzle-kit push",
@@ -39,7 +42,6 @@
   },
   "devDependencies": {
     "@types/bun": "^1.4.3",
-    "drizzle-kit": "1.0.0-rc.5-ab785fc",
-    "oxlint": "1.83.0"
+    "drizzle-kit": "1.0.0-rc.5-ab785fc"
   }
 }

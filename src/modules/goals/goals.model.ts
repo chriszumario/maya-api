@@ -49,7 +49,7 @@ export const GoalsModel = {
   }),
   update: v.pipe(
     v.partial(v.object(fields)),
-    v.check((value) => Object.keys(value).length > 0, 'Debe incluir al menos un campo')
+    v.check((value) => Object.keys(value).length > 0, 'Debe incluir al menos un campo'),
   ),
   reviewCreate: v.object({
     whatWorked: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(4000)),

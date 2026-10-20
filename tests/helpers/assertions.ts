@@ -13,4 +13,3 @@ export async function expectApiError(
     expect(error).toMatchObject(expected);
   }
 }
-

@@ -20,7 +20,9 @@ describe('JournalModel', () => {
       const { [field]: _, ...missingField } = completeEntry;
 
       expect(v.safeParse(JournalModel.create, missingField).success).toBe(false);
-      expect(v.safeParse(JournalModel.create, { ...completeEntry, [field]: null }).success).toBe(false);
+      expect(v.safeParse(JournalModel.create, { ...completeEntry, [field]: null }).success).toBe(
+        false,
+      );
     }
   });
 

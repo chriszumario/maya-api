@@ -54,24 +54,24 @@ describe('checkRateLimit', () => {
 
 describe('ip macro', () => {
   test('ignores spoofable forwarding headers outside Vercel', async () => {
-    const app = new Elysia()
-      .use(ip)
-      .get('/', { ip: true }, ({ ip }) => ip);
-    const response = await app.handle(new Request('http://localhost', {
-      headers: { 'x-forwarded-for': '203.0.113.10', 'x-real-ip': '203.0.113.11' },
-    }));
+    const app = new Elysia().use(ip).get('/', { ip: true }, ({ ip }) => ip);
+    const response = await app.handle(
+      new Request('http://localhost', {
+        headers: { 'x-forwarded-for': '203.0.113.10', 'x-real-ip': '203.0.113.11' },
+      }),
+    );
 
     expect(await response.text()).toBe('unidentified');
   });
 
   test('uses the canonical forwarding header on Vercel', async () => {
     Bun.env.VERCEL = '1';
-    const app = new Elysia()
-      .use(ip)
-      .get('/', { ip: true }, ({ ip }) => ip);
-    const response = await app.handle(new Request('http://localhost', {
-      headers: { 'x-forwarded-for': '203.0.113.10, 10.0.0.1' },
-    }));
+    const app = new Elysia().use(ip).get('/', { ip: true }, ({ ip }) => ip);
+    const response = await app.handle(
+      new Request('http://localhost', {
+        headers: { 'x-forwarded-for': '203.0.113.10, 10.0.0.1' },
+      }),
+    );
 
     expect(await response.text()).toBe('203.0.113.10');
   });
@@ -83,9 +83,13 @@ describe('rateLimit macro', () => {
     spyOn(console, 'error').mockImplementation(() => undefined);
     spyOn(redis, 'send').mockImplementation(() => new Promise(() => {}));
     const handle = mock(() => 'ok');
-    const app = new Elysia().use(rateLimit).get('/', {
-      rateLimit: { max: 10, windowMs: 60_000, identifier: 'ip', namespace: 'timeout-test' },
-    }, handle);
+    const app = new Elysia().use(rateLimit).get(
+      '/',
+      {
+        rateLimit: { max: 10, windowMs: 60_000, identifier: 'ip', namespace: 'timeout-test' },
+      },
+      handle,
+    );
     const response = await app.handle(new Request('http://localhost/'));
     expect(response.status).toBe(503);
     expect(handle).not.toHaveBeenCalled();
@@ -94,9 +98,13 @@ describe('rateLimit macro', () => {
   test('does not use a user bucket without an authenticated identity', async () => {
     env.APP_ENV = 'production';
     const send = spyOn(redis, 'send');
-    const app = new Elysia().use(rateLimit).get('/', {
-      rateLimit: { max: 10, windowMs: 60_000, identifier: 'user', namespace: 'user-test' },
-    }, () => 'ok');
+    const app = new Elysia().use(rateLimit).get(
+      '/',
+      {
+        rateLimit: { max: 10, windowMs: 60_000, identifier: 'user', namespace: 'user-test' },
+      },
+      () => 'ok',
+    );
     const response = await app.handle(new Request('http://localhost/'));
     expect(response.status).toBe(401);
     expect(send).not.toHaveBeenCalled();
@@ -106,16 +114,18 @@ describe('rateLimit macro', () => {
     env.APP_ENV = 'production';
     spyOn(redis, 'send').mockResolvedValue([3, 9_500]);
     spyOn(Temporal.Now, 'instant').mockReturnValue(Temporal.Instant.fromEpochMilliseconds(61_000));
-    const app = new Elysia()
-      .use(rateLimit)
-      .get('/', {
+    const app = new Elysia().use(rateLimit).get(
+      '/',
+      {
         rateLimit: {
           max: 2,
           windowMs: 60_000,
           identifier: 'ip',
           namespace: 'test',
         },
-      }, () => 'ok');
+      },
+      () => 'ok',
+    );
 
     const response = await app.handle(new Request('http://localhost/'));
 
@@ -135,16 +145,18 @@ describe('rateLimit macro', () => {
     env.APP_ENV = 'production';
     const consoleError = spyOn(console, 'error').mockImplementation(() => undefined);
     spyOn(redis, 'send').mockRejectedValue(new Error('Redis unavailable'));
-    const app = new Elysia()
-      .use(rateLimit)
-      .get('/', {
+    const app = new Elysia().use(rateLimit).get(
+      '/',
+      {
         rateLimit: {
           max: 10,
           windowMs: 35_000,
           identifier: 'ip',
           namespace: 'test',
         },
-      }, () => 'ok');
+      },
+      () => 'ok',
+    );
 
     const response = await app.handle(new Request('http://localhost/'));
 

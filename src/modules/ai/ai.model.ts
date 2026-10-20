@@ -15,12 +15,7 @@ const journalTitle = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(20
 const journalText = v.pipe(v.string(), v.maxLength(10_000));
 const goalTitle = v.pipe(v.string(), v.trim(), v.minLength(3), v.maxLength(200));
 const goalMotivation = v.pipe(v.string(), v.trim(), v.minLength(3), v.maxLength(4_000));
-const nutrient = v.pipe(
-  v.number(),
-  v.safeInteger(),
-  v.minValue(0),
-  v.maxValue(100_000)
-);
+const nutrient = v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(100_000));
 
 export const AiModel = {
   improveJournal: v.object({
@@ -39,8 +34,8 @@ export const AiModel = {
   }),
   improvedJournal: v.variant('field', [
     v.object({ field: v.literal('title'), text: journalTitle }),
-    ...(['content', 'gratitude', 'wins', 'lessons', 'problems', 'ideas'] as const).map(
-      (field) => v.object({ field: v.literal(field), text: journalText })
+    ...(['content', 'gratitude', 'wins', 'lessons', 'problems', 'ideas'] as const).map((field) =>
+      v.object({ field: v.literal(field), text: journalText }),
     ),
   ]),
   improvedGoal: v.variant('field', [

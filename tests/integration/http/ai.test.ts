@@ -22,11 +22,9 @@ describe('HTTP AI improvements', () => {
       field: 'title' as const,
       text: '  correr una maratón  ',
     };
-    const response = await app.handle(jsonRequest(
-      '/ai/improve-goal',
-      body,
-      { headers: bearer(token) },
-    ));
+    const response = await app.handle(
+      jsonRequest('/ai/improve-goal', body, { headers: bearer(token) }),
+    );
 
     expect(response.status).toBe(200);
     expect(improveGoal).toHaveBeenCalledWith({
@@ -47,11 +45,13 @@ describe('HTTP AI improvements', () => {
     } as never);
     const token = await issueAccessToken(17);
     const improveGoal = spyOn(AiService, 'improveGoal');
-    const response = await app.handle(jsonRequest(
-      '/ai/improve-goal',
-      { fields: { title: 'Correr', motivation: 'Mejorar mi salud' } },
-      { headers: bearer(token) },
-    ));
+    const response = await app.handle(
+      jsonRequest(
+        '/ai/improve-goal',
+        { fields: { title: 'Correr', motivation: 'Mejorar mi salud' } },
+        { headers: bearer(token) },
+      ),
+    );
 
     expect(response.status).toBe(422);
     expect(improveGoal).not.toHaveBeenCalled();

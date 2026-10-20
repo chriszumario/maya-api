@@ -3,7 +3,6 @@ import { AiModel } from './ai.model';
 import { AiService } from './ai.service';
 import { authentication, rateLimit } from '@/lib';
 
-
 export const ai = new Elysia({ prefix: '/ai', name: 'module.ai', tags: ['AI'] })
   .use(rateLimit)
   .use(authentication)
@@ -26,7 +25,7 @@ export const ai = new Elysia({ prefix: '/ai', name: 'module.ai', tags: ['AI'] })
         description: 'Corrige un campo del diario por solicitud.',
       },
     },
-    ({ body }) => AiService.improveJournal(body)
+    ({ body }) => AiService.improveJournal(body),
   )
   .post(
     '/improve-goal',
@@ -38,14 +37,17 @@ export const ai = new Elysia({ prefix: '/ai', name: 'module.ai', tags: ['AI'] })
         description: 'Corrige el título o la motivación enviados por solicitud.',
       },
     },
-    ({ body }) => AiService.improveGoal(body)
+    ({ body }) => AiService.improveGoal(body),
   )
   .post(
     '/estimate-calories',
     {
       body: AiModel.estimateCalories,
       response: { 200: AiModel.calories },
-      detail: { summary: 'Estimar calorías', description: 'Estima las calorías de un alimento (Groq).' },
+      detail: {
+        summary: 'Estimar calorías',
+        description: 'Estima las calorías de un alimento (Groq).',
+      },
     },
-    ({ body }) => AiService.estimateCalories(body)
+    ({ body }) => AiService.estimateCalories(body),
   );

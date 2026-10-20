@@ -35,11 +35,7 @@ describe('HTTP journal', () => {
     };
     const create = spyOn(JournalService, 'create').mockResolvedValue(entry);
 
-    const response = await app.handle(jsonRequest(
-      '/journal/',
-      body,
-      { headers: bearer(token) }
-    ));
+    const response = await app.handle(jsonRequest('/journal/', body, { headers: bearer(token) }));
 
     expect(response.status).toBe(201);
     expect(create).toHaveBeenCalledWith(17, body);

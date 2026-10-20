@@ -1,5 +1,4 @@
-import { aot } from "elysia/plugin/aot/bun";
-
+import { aot } from 'elysia/plugin/aot/bun';
 
 const result = await Bun.build({
   entrypoints: ['src/index.ts'],
@@ -7,9 +6,7 @@ const result = await Bun.build({
   target: 'bun',
   minify: true,
   sourcemap: 'linked',
-  plugins: [
-    aot('src/index.ts'),
-  ],
+  plugins: [aot('src/index.ts')],
 });
 
 if (!result.success) {

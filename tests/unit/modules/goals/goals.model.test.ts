@@ -4,12 +4,14 @@ import { GoalsModel } from '@/modules/goals/goals.model';
 
 describe('GoalsModel', () => {
   test('rejects a title below the minimum length', () => {
-    expect(v.safeParse(GoalsModel.create, {
-      title: 'Go',
-      motivation: 'Valid motivation',
-      category: 'growth',
-      priority: 'high',
-    }).success).toBe(false);
+    expect(
+      v.safeParse(GoalsModel.create, {
+        title: 'Go',
+        motivation: 'Valid motivation',
+        category: 'growth',
+        priority: 'high',
+      }).success,
+    ).toBe(false);
   });
 
   test('does not accept lifecycle fields on create or update', () => {

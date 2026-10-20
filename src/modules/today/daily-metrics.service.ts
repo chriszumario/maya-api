@@ -36,21 +36,37 @@ export abstract class DailyMetricsService {
         userId: sql<number>`${userId}`.as('userId'),
         localDate: sql<string>`${localDate}`.as('localDate'),
         plannedTasksCount: sql<number>`count(${tasks.id})`.mapWith(Number).as('plannedTasksCount'),
-        plannedMinutes: sql<number>`coalesce(sum(${tasks.estimatedMinutes}), 0)`.mapWith(Number).as('plannedMinutes'),
-        pendingTasksCount: sql<number>`coalesce(sum(case when ${taskLogs.id} is null then 1 else 0 end), 0)`.mapWith(Number).as('pendingTasksCount'),
-        inProgressTasksCount: sql<number>`coalesce(sum(case when ${taskLogs.status} = 'in_progress' then 1 else 0 end), 0)`.mapWith(Number).as('inProgressTasksCount'),
-        completedTasksCount: sql<number>`coalesce(sum(case when ${taskLogs.status} = 'completed' then 1 else 0 end), 0)`.mapWith(Number).as('completedTasksCount'),
-        completedMinutes: sql<number>`coalesce(sum(case when ${taskLogs.status} = 'completed' then ${taskLogs.durationMinutes} else 0 end), 0)`.mapWith(Number).as('completedMinutes'),
+        plannedMinutes: sql<number>`coalesce(sum(${tasks.estimatedMinutes}), 0)`
+          .mapWith(Number)
+          .as('plannedMinutes'),
+        pendingTasksCount:
+          sql<number>`coalesce(sum(case when ${taskLogs.id} is null then 1 else 0 end), 0)`
+            .mapWith(Number)
+            .as('pendingTasksCount'),
+        inProgressTasksCount:
+          sql<number>`coalesce(sum(case when ${taskLogs.status} = 'in_progress' then 1 else 0 end), 0)`
+            .mapWith(Number)
+            .as('inProgressTasksCount'),
+        completedTasksCount:
+          sql<number>`coalesce(sum(case when ${taskLogs.status} = 'completed' then 1 else 0 end), 0)`
+            .mapWith(Number)
+            .as('completedTasksCount'),
+        completedMinutes:
+          sql<number>`coalesce(sum(case when ${taskLogs.status} = 'completed' then ${taskLogs.durationMinutes} else 0 end), 0)`
+            .mapWith(Number)
+            .as('completedMinutes'),
       })
       .from(tasks)
       .innerJoin(goals, eq(tasks.goalId, goals.id))
       .leftJoin(taskLogs, and(eq(taskLogs.taskId, tasks.id), eq(taskLogs.localDate, localDate)))
-      .where(and(
-        eq(goals.userId, userId),
-        eq(goals.status, 'in_progress'),
-        eq(tasks.isActive, true),
-        scheduled,
-      ));
+      .where(
+        and(
+          eq(goals.userId, userId),
+          eq(goals.status, 'in_progress'),
+          eq(tasks.isActive, true),
+          scheduled,
+        ),
+      );
 
     const [metrics] = await executor
       .insert(dailyUserMetrics)
@@ -72,8 +88,10 @@ export abstract class DailyMetricsService {
     next: LogMetrics,
     executor: DatabaseExecutor,
   ) {
-    const inProgressDelta = Number(next.status === 'in_progress') - Number(previous.status === 'in_progress');
-    const completedDelta = Number(next.status === 'completed') - Number(previous.status === 'completed');
+    const inProgressDelta =
+      Number(next.status === 'in_progress') - Number(previous.status === 'in_progress');
+    const completedDelta =
+      Number(next.status === 'completed') - Number(previous.status === 'completed');
     const completedMinutesDelta =
       (next.status === 'completed' ? next.durationMinutes : 0) -
       (previous.status === 'completed' ? previous.durationMinutes : 0);
@@ -85,10 +103,7 @@ export abstract class DailyMetricsService {
         completedTasksCount: sql`${dailyUserMetrics.completedTasksCount} + ${completedDelta}`,
         completedMinutes: sql`${dailyUserMetrics.completedMinutes} + ${completedMinutesDelta}`,
       })
-      .where(and(
-        eq(dailyUserMetrics.userId, userId),
-        eq(dailyUserMetrics.localDate, localDate),
-      ))
+      .where(and(eq(dailyUserMetrics.userId, userId), eq(dailyUserMetrics.localDate, localDate)))
       .returning();
 
     if (!metrics) {

@@ -20,10 +20,12 @@ const task = (overrides: Record<string, unknown> = {}) => ({
 
 const createTransaction = (foundTask: ReturnType<typeof task>) => {
   const insert = mock();
-  spyOn(db, 'transaction').mockImplementation(async (callback) => callback({
-    query: { tasks: { findFirst: async () => foundTask } },
-    insert,
-  } as never));
+  spyOn(db, 'transaction').mockImplementation(async (callback) =>
+    callback({
+      query: { tasks: { findFirst: async () => foundTask } },
+      insert,
+    } as never),
+  );
   return insert;
 };
 
@@ -31,17 +33,24 @@ describe('TaskLogsService validation', () => {
   for (const [name, invalidTask, type] of [
     ['inactive task', task({ isActive: false }), 'TASK_NOT_ACTIVE'],
     ['goal outside in_progress', task({ goal: { status: 'pending' } }), 'GOAL_NOT_IN_PROGRESS'],
-    ['task outside its schedule', task({ frequency: 'once', recurrenceMask: 19990101 }), 'TASK_NOT_SCHEDULED'],
+    [
+      'task outside its schedule',
+      task({ frequency: 'once', recurrenceMask: 19990101 }),
+      'TASK_NOT_SCHEDULED',
+    ],
   ] as const) {
     test.serial(`rejects an ${name}`, async () => {
       spyOn(db.query.users, 'findFirst').mockResolvedValue({ timezone: 'America/La_Paz' } as never);
       const insert = createTransaction(invalidTask as ReturnType<typeof task>);
 
-      await expectApiError(TaskLogsService.create(3, {
-        taskId: 12,
-        status: 'completed',
-        durationMinutes: 20,
-      }), { status: 409, type });
+      await expectApiError(
+        TaskLogsService.create(3, {
+          taskId: 12,
+          status: 'completed',
+          durationMinutes: 20,
+        }),
+        { status: 409, type },
+      );
       expect(insert).not.toHaveBeenCalled();
     });
   }
@@ -74,11 +83,13 @@ describe('TaskLogsService validation', () => {
     const failure = new Error('metrics unavailable');
     spyOn(DailyMetricsService, 'rebuild').mockRejectedValue(failure);
 
-    await expect(TaskLogsService.create(3, {
-      taskId: 12,
-      status: 'completed',
-      durationMinutes: 20,
-    })).rejects.toBe(failure);
+    await expect(
+      TaskLogsService.create(3, {
+        taskId: 12,
+        status: 'completed',
+        durationMinutes: 20,
+      }),
+    ).rejects.toBe(failure);
     expect(returning).toHaveBeenCalled();
     expect(DailyMetricsService.rebuild).toHaveBeenCalledWith(3, localDate, tx);
     expect(committed).toBe(false);
@@ -108,35 +119,51 @@ describe('TaskLogsService validation', () => {
     spyOn(db, 'transaction').mockImplementation(async (callback) => callback(tx as never));
     const delta = spyOn(DailyMetricsService, 'applyLogDelta').mockResolvedValue({} as never);
 
-    await expect(TaskLogsService.update(3, 8, {
-      status: 'completed',
-      durationMinutes: 25,
-    })).resolves.toEqual(updated);
+    await expect(
+      TaskLogsService.update(3, 8, {
+        status: 'completed',
+        durationMinutes: 25,
+      }),
+    ).resolves.toEqual(updated);
 
     expect(tx.query.taskLogs.findFirst).toHaveBeenCalled();
-    expect(delta).toHaveBeenCalledWith(3, '2026-07-01', existing, {
-      status: 'completed',
-      durationMinutes: 25,
-    }, tx);
+    expect(delta).toHaveBeenCalledWith(
+      3,
+      '2026-07-01',
+      existing,
+      {
+        status: 'completed',
+        durationMinutes: 25,
+      },
+      tx,
+    );
   });
 
-  test.serial('rebuilds current metrics when editing a log whose task may have left the plan', async () => {
-    spyOn(db.query.users, 'findFirst').mockResolvedValue({ timezone: 'America/La_Paz' } as never);
-    const today = computeLocalDate('America/La_Paz');
-    const existing = { id: 8, localDate: today, status: 'completed', durationMinutes: 20 };
-    const updated = {
-      ...existing, status: 'in_progress' as const, taskId: 12,
-      createdAt: `${today} 10:00:00`, updatedAt: `${today} 11:00:00`,
-    };
-    const tx = {
-      query: { taskLogs: { findFirst: async () => existing } },
-      update: () => ({ set: () => ({ where: () => ({ returning: async () => [updated] }) }) }),
-    };
-    spyOn(db, 'transaction').mockImplementation(async (callback) => callback(tx as never));
-    const rebuild = spyOn(DailyMetricsService, 'rebuild').mockResolvedValue({} as never);
-    const delta = spyOn(DailyMetricsService, 'applyLogDelta');
-    await expect(TaskLogsService.update(3, 8, { status: 'in_progress' })).resolves.toEqual(updated);
-    expect(rebuild).toHaveBeenCalledWith(3, today, tx);
-    expect(delta).not.toHaveBeenCalled();
-  });
+  test.serial(
+    'rebuilds current metrics when editing a log whose task may have left the plan',
+    async () => {
+      spyOn(db.query.users, 'findFirst').mockResolvedValue({ timezone: 'America/La_Paz' } as never);
+      const today = computeLocalDate('America/La_Paz');
+      const existing = { id: 8, localDate: today, status: 'completed', durationMinutes: 20 };
+      const updated = {
+        ...existing,
+        status: 'in_progress' as const,
+        taskId: 12,
+        createdAt: `${today} 10:00:00`,
+        updatedAt: `${today} 11:00:00`,
+      };
+      const tx = {
+        query: { taskLogs: { findFirst: async () => existing } },
+        update: () => ({ set: () => ({ where: () => ({ returning: async () => [updated] }) }) }),
+      };
+      spyOn(db, 'transaction').mockImplementation(async (callback) => callback(tx as never));
+      const rebuild = spyOn(DailyMetricsService, 'rebuild').mockResolvedValue({} as never);
+      const delta = spyOn(DailyMetricsService, 'applyLogDelta');
+      await expect(TaskLogsService.update(3, 8, { status: 'in_progress' })).resolves.toEqual(
+        updated,
+      );
+      expect(rebuild).toHaveBeenCalledWith(3, today, tx);
+      expect(delta).not.toHaveBeenCalled();
+    },
+  );
 });

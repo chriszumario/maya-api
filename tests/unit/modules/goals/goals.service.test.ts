@@ -32,8 +32,7 @@ const mockUpdateTransaction = () => {
   const update = mock(() => ({ set }));
 
   const tx = { update };
-  spyOn(db, 'transaction').mockImplementation(async (callback) =>
-    callback(tx as never));
+  spyOn(db, 'transaction').mockImplementation(async (callback) => callback(tx as never));
 
   return { getPatch: () => persistedPatch, tx };
 };
@@ -56,9 +55,12 @@ describe('GoalsService terminal state rule', () => {
       });
       const transaction = spyOn(db, 'transaction');
 
-      await expectApiError(GoalsService.update(3, 10, {
-        status: 'in_progress',
-      }), { status: 409, type: 'GOAL_TERMINAL' });
+      await expectApiError(
+        GoalsService.update(3, 10, {
+          status: 'in_progress',
+        }),
+        { status: 409, type: 'GOAL_TERMINAL' },
+      );
       expect(transaction).not.toHaveBeenCalled();
     });
   }
@@ -127,7 +129,10 @@ describe('GoalsService terminal state rule', () => {
       set: () => ({ where: () => ({ returning: goalReturning }) }),
     }));
     spyOn(db, 'transaction').mockImplementation(async (callback) =>
-      callback({ update: (table: unknown) => table === tasks ? taskUpdate() : goalUpdate() } as never));
+      callback({
+        update: (table: unknown) => (table === tasks ? taskUpdate() : goalUpdate()),
+      } as never),
+    );
 
     await expectApiError(GoalsService.update(3, 10, { status: 'cancelled' }), {
       status: 409,

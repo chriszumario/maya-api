@@ -1,11 +1,7 @@
 import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test';
 import { db } from '@/db/drizzle';
 import { RefreshTokenService } from '@/modules/auth/refresh-token.service';
-import {
-  deriveRefreshIdempotencyKey,
-  encryptRefreshRotationResult,
-  hashToken,
-} from '@/lib/crypto';
+import { deriveRefreshIdempotencyKey, encryptRefreshRotationResult, hashToken } from '@/lib/crypto';
 import { expectApiError } from '../../../helpers/assertions';
 import { refreshTransaction } from '../../../helpers/refresh-transaction';
 
@@ -36,7 +32,8 @@ describe('RefreshTokenService.issue', () => {
   test.serial('issues, cleans history, and prunes inside one transaction', async () => {
     const fake = refreshTransaction();
     const transaction = spyOn(db, 'transaction').mockImplementation(async (callback) =>
-      callback(fake.tx as never));
+      callback(fake.tx as never),
+    );
 
     const token = await RefreshTokenService.issue(9);
 
@@ -47,13 +44,14 @@ describe('RefreshTokenService.issue', () => {
   });
 
   test.serial('revokes the oldest session when issuance exceeds the active limit', async () => {
-    const fake = refreshTransaction(Array.from({ length: 11 }, (_, index) => ({
-      ...activeToken,
-      id: index + 1,
-      familyId: `family-${index + 1}`,
-    })));
-    spyOn(db, 'transaction').mockImplementation(async (callback) =>
-      callback(fake.tx as never));
+    const fake = refreshTransaction(
+      Array.from({ length: 11 }, (_, index) => ({
+        ...activeToken,
+        id: index + 1,
+        familyId: `family-${index + 1}`,
+      })),
+    );
+    spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
 
     await RefreshTokenService.issue(9);
 
@@ -65,8 +63,7 @@ describe('RefreshTokenService.issue', () => {
 describe('RefreshTokenService.rotate', () => {
   test.serial('rejects an unknown token', async () => {
     const fake = refreshTransaction();
-    spyOn(db, 'transaction').mockImplementation(async (callback) =>
-      callback(fake.tx as never));
+    spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
 
     await expectApiError(rotate('unknown-refresh-token-value-1234567890'), {
       status: 401,
@@ -80,8 +77,7 @@ describe('RefreshTokenService.rotate', () => {
       ...activeToken,
       revokedAt: '2026-08-23 10:00:00',
     });
-    spyOn(db, 'transaction').mockImplementation(async (callback) =>
-      callback(fake.tx as never));
+    spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
 
     await expectApiError(rotate('reused-refresh-token-value-1234567890'), {
       status: 401,
@@ -92,8 +88,7 @@ describe('RefreshTokenService.rotate', () => {
 
   test.serial('rotates an active token in the same family', async () => {
     const fake = refreshTransaction(activeToken);
-    spyOn(db, 'transaction').mockImplementation(async (callback) =>
-      callback(fake.tx as never));
+    spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
 
     const rotated = await rotate('active-refresh-token-value-1234567890');
 
@@ -106,8 +101,7 @@ describe('RefreshTokenService.rotate', () => {
 
   test.serial('rejects an expired token without issuing a replacement', async () => {
     const fake = refreshTransaction({ ...activeToken, expired: true });
-    spyOn(db, 'transaction').mockImplementation(async (callback) =>
-      callback(fake.tx as never));
+    spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
 
     await expectApiError(rotate('expired-refresh-token-value-1234567890'), {
       status: 401,
@@ -120,8 +114,7 @@ describe('RefreshTokenService.rotate', () => {
 
   test.serial('rejects inactive users and revokes their token family', async () => {
     const fake = refreshTransaction({ ...activeToken, isActive: false });
-    spyOn(db, 'transaction').mockImplementation(async (callback) =>
-      callback(fake.tx as never));
+    spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
 
     await expectApiError(rotate('inactive-user-refresh-token-value-1234567890'), {
       status: 401,
@@ -162,31 +155,44 @@ describe('RefreshTokenService.rotate', () => {
     spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
 
     await expectApiError(
-      RefreshTokenService.rotate('active-refresh-token-value-1234567890', undefined, signAccessToken),
+      RefreshTokenService.rotate(
+        'active-refresh-token-value-1234567890',
+        undefined,
+        signAccessToken,
+      ),
       { status: 400, type: 'INVALID_IDEMPOTENCY_KEY' },
     );
     expect(fake.update).not.toHaveBeenCalled();
   });
 
-  test.serial('upgrades legacy encrypted replays without replacing their refresh token', async () => {
-    const rawToken = 'legacy-refresh-token-value-1234567890';
-    const key = deriveRefreshIdempotencyKey(rawToken);
-    const keyHash = hashToken(key);
-    const encryptedResult = await encryptRefreshRotationResult(
-      { accessToken: 'old-access', refreshToken: 'same-successor' },
-      `${activeToken.id}:2:${activeToken.familyId}:${keyHash}`,
-    );
-    const fake = refreshTransaction({
-      ...activeToken, revokedAt: '2026-09-07 10:00:00', rotationKeyHash: keyHash,
-      encryptedResult, replayActive: true, successorTokenId: 2,
-      successorRevokedAt: null, successorExpired: false,
-    });
-    spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
-    expect(await RefreshTokenService.rotate(rawToken, key, signAccessToken)).toEqual({
-      accessToken: 'signed-access-token', refreshToken: 'same-successor',
-    });
-    expect(fake.set).toHaveBeenCalledWith({ encryptedResult: expect.any(String) });
-  });
+  test.serial(
+    'upgrades legacy encrypted replays without replacing their refresh token',
+    async () => {
+      const rawToken = 'legacy-refresh-token-value-1234567890';
+      const key = deriveRefreshIdempotencyKey(rawToken);
+      const keyHash = hashToken(key);
+      const encryptedResult = await encryptRefreshRotationResult(
+        { accessToken: 'old-access', refreshToken: 'same-successor' },
+        `${activeToken.id}:2:${activeToken.familyId}:${keyHash}`,
+      );
+      const fake = refreshTransaction({
+        ...activeToken,
+        revokedAt: '2026-09-07 10:00:00',
+        rotationKeyHash: keyHash,
+        encryptedResult,
+        replayActive: true,
+        successorTokenId: 2,
+        successorRevokedAt: null,
+        successorExpired: false,
+      });
+      spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
+      expect(await RefreshTokenService.rotate(rawToken, key, signAccessToken)).toEqual({
+        accessToken: 'signed-access-token',
+        refreshToken: 'same-successor',
+      });
+      expect(fake.set).toHaveBeenCalledWith({ encryptedResult: expect.any(String) });
+    },
+  );
 
   test.serial('revokes a consumed token family when the key differs', async () => {
     const rawToken = 'reused-refresh-token-value-1234567890';
@@ -197,7 +203,11 @@ describe('RefreshTokenService.rotate', () => {
     spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
 
     await expectApiError(
-      RefreshTokenService.rotate(rawToken, deriveRefreshIdempotencyKey('another-token'), signAccessToken),
+      RefreshTokenService.rotate(
+        rawToken,
+        deriveRefreshIdempotencyKey('another-token'),
+        signAccessToken,
+      ),
       { status: 401, type: 'REFRESH_TOKEN_REUSE' },
     );
     expect(fake.update).toHaveBeenCalledTimes(2);
@@ -227,21 +237,22 @@ describe('RefreshTokenService.rotate', () => {
 });
 
 describe('RefreshTokenService.revoke', () => {
-  test.serial('revokes the family and bumps the version to invalidate every access JWT', async () => {
-    const fake = refreshTransaction(activeToken);
-    spyOn(db, 'transaction').mockImplementation(async (callback) =>
-      callback(fake.tx as never));
+  test.serial(
+    'revokes the family and bumps the version to invalidate every access JWT',
+    async () => {
+      const fake = refreshTransaction(activeToken);
+      spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
 
-    await RefreshTokenService.revoke('previous-refresh-token-value-1234567890');
+      await RefreshTokenService.revoke('previous-refresh-token-value-1234567890');
 
-    expect(fake.update).toHaveBeenCalledTimes(2);
-    expect(fake.set).toHaveBeenCalledWith({ revokedAt: expect.anything() });
-  });
+      expect(fake.update).toHaveBeenCalledTimes(2);
+      expect(fake.set).toHaveBeenCalledWith({ revokedAt: expect.anything() });
+    },
+  );
 
   test.serial('is idempotent for an unknown token', async () => {
     const fake = refreshTransaction();
-    spyOn(db, 'transaction').mockImplementation(async (callback) =>
-      callback(fake.tx as never));
+    spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
 
     await RefreshTokenService.revoke('unknown-refresh-token-value-1234567890');
 

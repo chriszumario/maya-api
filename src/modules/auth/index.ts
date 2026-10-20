@@ -2,11 +2,7 @@ import { Elysia } from 'elysia';
 import { AuthModel } from './auth.model';
 import { AuthService } from './auth.service';
 import { RefreshTokenService } from './refresh-token.service';
-import {
-  ACCESS_TOKEN_EXP,
-  authentication,
-  rateLimit,
-} from '@/lib';
+import { ACCESS_TOKEN_EXP, authentication, rateLimit } from '@/lib';
 const credentialRateLimit = {
   max: 10,
   windowMs: 15 * 60_000,
@@ -17,13 +13,13 @@ const credentialRateLimit = {
 export const auth = new Elysia({
   prefix: '/auth',
   name: 'module.auth',
-  tags: ['Auth']
+  tags: ['Auth'],
 })
   .use(rateLimit)
   .use(authentication)
   .post(
     '/register',
-      {
+    {
       rateLimit: {
         max: 10,
         windowMs: 15 * 60_000,
@@ -41,11 +37,11 @@ export const auth = new Elysia({
     async ({ body, status }) => {
       await AuthService.register(body);
       return status(201, { status: 'pending_approval' as const });
-    }
+    },
   )
   .post(
     '/login',
-      {
+    {
       rateLimit: {
         max: 10,
         windowMs: 15 * 60_000,
@@ -56,7 +52,8 @@ export const auth = new Elysia({
       response: { 200: AuthModel.sessionResponse },
       detail: {
         summary: 'Iniciar sesión',
-        description: 'Autentica y devuelve access JWT + refresh token + usuario. Usuarios no aprobados reciben 403.',
+        description:
+          'Autentica y devuelve access JWT + refresh token + usuario. Usuarios no aprobados reciben 403.',
       },
     },
     async ({ body, jwt, set }) => {
@@ -64,7 +61,7 @@ export const auth = new Elysia({
       const accessToken = await jwt.sign({ userId: user.id, tokenVersion });
       set.headers['cache-control'] = 'private, no-store';
       return { accessToken, refreshToken, user };
-    }
+    },
   )
   .post(
     '/refresh',
@@ -88,12 +85,10 @@ export const auth = new Elysia({
     },
     async ({ body, headers, jwt, set }) => {
       set.headers['cache-control'] = 'private, no-store';
-      return RefreshTokenService.rotate(
-        body.refreshToken,
-        headers['idempotency-key'],
-        (payload) => jwt.sign(payload),
+      return RefreshTokenService.rotate(body.refreshToken, headers['idempotency-key'], (payload) =>
+        jwt.sign(payload),
       );
-    }
+    },
   )
   .post(
     '/logout',
@@ -115,7 +110,7 @@ export const auth = new Elysia({
     async ({ body }) => {
       await RefreshTokenService.revoke(body.refreshToken);
       return { status: 'logged_out' as const };
-    }
+    },
   )
   .get(
     '/me',
@@ -124,7 +119,7 @@ export const auth = new Elysia({
       response: { 200: AuthModel.userResponse },
       detail: { summary: 'Perfil actual', description: 'Datos del usuario autenticado.' },
     },
-    ({ userId }) => AuthService.getUserById(userId)
+    ({ userId }) => AuthService.getUserById(userId),
   )
   .patch(
     '/profile',
@@ -135,10 +130,11 @@ export const auth = new Elysia({
       response: { 200: AuthModel.userResponse },
       detail: {
         summary: 'Actualizar perfil',
-        description: 'Actualiza nombre y/o correo. Cambiar el correo requiere la contraseña actual.',
+        description:
+          'Actualiza nombre y/o correo. Cambiar el correo requiere la contraseña actual.',
       },
     },
-    ({ body, userId }) => AuthService.updateProfile(userId, body)
+    ({ body, userId }) => AuthService.updateProfile(userId, body),
   )
   .patch(
     '/password',
@@ -155,5 +151,5 @@ export const auth = new Elysia({
     async ({ body, userId }) => {
       await AuthService.updatePassword(userId, body);
       return { status: 'password_updated' as const };
-    }
+    },
   );

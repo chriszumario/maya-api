@@ -2,12 +2,7 @@ import * as v from 'valibot';
 import { LocalDateSchema, NumericIdSchema, NumericQuerySchema } from '@/lib/schemas';
 
 const status = v.picklist(['in_progress', 'completed']);
-const durationMinutes = v.pipe(
-  v.number(),
-  v.safeInteger(),
-  v.minValue(0),
-  v.maxValue(1440),
-);
+const durationMinutes = v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(1440));
 const response = v.object({
   id: v.number(),
   taskId: v.number(),
@@ -26,7 +21,7 @@ export const TaskLogsModel = {
   }),
   update: v.pipe(
     v.partial(v.object({ status, durationMinutes })),
-    v.check((value) => Object.keys(value).length > 0, 'Debe incluir al menos un campo')
+    v.check((value) => Object.keys(value).length > 0, 'Debe incluir al menos un campo'),
   ),
   listQuery: v.object({
     limit: v.optional(NumericQuerySchema(1, 100), '20'),

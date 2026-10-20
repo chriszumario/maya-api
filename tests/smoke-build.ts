@@ -4,13 +4,18 @@ import * as v from 'valibot';
 import { ApiFailureSchema } from '../src/lib/schemas';
 import { env } from '../src/lib/env';
 
-const { default: built } = await import(`${import.meta.dir}/../dist/index.js`) as { default: typeof app };
-const routes = (instance: typeof app) => instance.routes
-  .map(({ method, path }) => `${method} ${path}`).sort();
+const { default: built } = (await import(`${import.meta.dir}/../dist/index.js`)) as {
+  default: typeof app;
+};
+const routes = (instance: typeof app) =>
+  instance.routes.map(({ method, path }) => `${method} ${path}`).sort();
 
 assert.deepEqual(routes(built), routes(app), 'El build debe conservar todas las rutas');
 for (const [path, status] of [
-  ['/', 200], ['/auth/me', 401], ['/admin/users', 401], ['/unknown', 404],
+  ['/', 200],
+  ['/auth/me', 401],
+  ['/admin/users', 401],
+  ['/unknown', 404],
 ] as const) {
   const response = await built.handle(new Request(`http://localhost${path}`));
   assert.equal(response.status, status, path);
@@ -20,18 +25,22 @@ for (const [path, status] of [
 }
 for (const path of ['/', '/auth/refresh']) {
   for (const origin of [env.ALLOWED_ORIGINS[0]!, 'https://untrusted.example']) {
-    const response = await built.handle(new Request(`http://localhost${path}`, {
-      method: 'OPTIONS',
-      headers: {
-        origin,
-        'access-control-request-method': 'POST',
-        'access-control-request-headers': 'content-type,idempotency-key',
-      },
-    }));
+    const response = await built.handle(
+      new Request(`http://localhost${path}`, {
+        method: 'OPTIONS',
+        headers: {
+          origin,
+          'access-control-request-method': 'POST',
+          'access-control-request-headers': 'content-type,idempotency-key',
+        },
+      }),
+    );
     assert.equal(response.status, 204);
     assert.equal(await response.text(), '');
-    assert.equal(response.headers.get('access-control-allow-origin'),
-      env.ALLOWED_ORIGINS.includes(origin) ? origin : null);
+    assert.equal(
+      response.headers.get('access-control-allow-origin'),
+      env.ALLOWED_ORIGINS.includes(origin) ? origin : null,
+    );
   }
 }
 console.log(`Build verificado: ${routes(built).length} rutas y respuestas básicas correctas`);

@@ -14,7 +14,6 @@ import { tasks, tasksById } from '@/modules/tasks';
 import { today } from '@/modules/today';
 import { httpLogger } from './lib/logger';
 
-
 const healthResponse = v.object({
   name: v.string(),
   version: v.string(),
@@ -24,13 +23,21 @@ const healthResponse = v.object({
 
 export const app = new Elysia({ name: 'maya-api' })
   .use(httpLogger)
-  .use(cors({
-    origin: (request) => env.ALLOWED_ORIGINS.includes(request.headers.get('origin') ?? ''),
-    preflight: false,
-    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key', 'X-Request-Id'],
-    exposeHeaders: ['X-Request-Id', 'X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset', 'Retry-After'],
-  }))
+  .use(
+    cors({
+      origin: (request) => env.ALLOWED_ORIGINS.includes(request.headers.get('origin') ?? ''),
+      preflight: false,
+      methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key', 'X-Request-Id'],
+      exposeHeaders: [
+        'X-Request-Id',
+        'X-RateLimit-Limit',
+        'X-RateLimit-Remaining',
+        'X-RateLimit-Reset',
+        'Retry-After',
+      ],
+    }),
+  )
   .use(errorHandler)
   .options('/*', ({ status }) => status(204))
   .get(
@@ -44,7 +51,7 @@ export const app = new Elysia({ name: 'maya-api' })
       version: APP_VERSION,
       timestamp: Temporal.Now.instant().toString(),
       uptimeSeconds: Math.floor(Bun.nanoseconds() / 1_000_000_000),
-    })
+    }),
   )
   .use(auth)
   .use(goals)

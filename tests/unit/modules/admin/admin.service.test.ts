@@ -25,14 +25,16 @@ describe('AdminService.getStats', () => {
       } as never)
       .mockReturnValueOnce({
         from: () => ({
-          where: async () => [{
-            planned: 12,
-            pending: 3,
-            inProgress: 2,
-            completed: 7,
-            plannedMinutes: 360,
-            completedMinutes: 210,
-          }],
+          where: async () => [
+            {
+              planned: 12,
+              pending: 3,
+              inProgress: 2,
+              completed: 7,
+              plannedMinutes: 360,
+              completedMinutes: 210,
+            },
+          ],
         }),
       } as never);
     spyOn(db, '$count')
@@ -40,12 +42,14 @@ describe('AdminService.getStats', () => {
       .mockResolvedValueOnce(8)
       .mockResolvedValueOnce(6)
       .mockResolvedValueOnce(9);
-    const all = spyOn(db, 'all').mockResolvedValue([{
-      id: 17,
-      name: 'Ada',
-      email: 'ada@example.com',
-      activityCount: 24,
-    }]);
+    const all = spyOn(db, 'all').mockResolvedValue([
+      {
+        id: 17,
+        name: 'Ada',
+        email: 'ada@example.com',
+        activityCount: 24,
+      },
+    ]);
     spyOn(RefreshTokenService, 'countAllActiveSessions').mockResolvedValue(2);
 
     const nanoseconds = spyOn(Bun, 'nanoseconds').mockReturnValue(1_000_000_000);
@@ -67,12 +71,14 @@ describe('AdminService.getStats', () => {
       journalEntries: 6,
       nutritionEntries: 9,
     });
-    expect(stats.topUsers).toEqual([{
-      id: 17,
-      name: 'Ada',
-      email: 'ada@example.com',
-      activityCount: 24,
-    }]);
+    expect(stats.topUsers).toEqual([
+      {
+        id: 17,
+        name: 'Ada',
+        email: 'ada@example.com',
+        activityCount: 24,
+      },
+    ]);
     expect(stats.system.activeSessions).toBe(2);
     expect(stats.system.uptimeSeconds).toBe(1);
     nanoseconds.mockReturnValue(5_000_000_000);
@@ -80,7 +86,10 @@ describe('AdminService.getStats', () => {
     expect(cached).toEqual({ ...stats, system: { ...stats.system, uptimeSeconds: 5 } });
     expect(all).toHaveBeenCalledTimes(1);
     expect(redis.send).toHaveBeenCalledWith('SET', [
-      'maya:development:cache:admin:stats:v1', expect.any(String), 'EX', '30',
+      'maya:development:cache:admin:stats:v1',
+      expect.any(String),
+      'EX',
+      '30',
     ]);
   });
 });

@@ -31,10 +31,8 @@ const USER_COLUMNS = {
 
 export abstract class AdminService {
   static async getStats() {
-    const { activeSessions, ...stats } = await cache.remember(
-      'admin:stats:v1',
-      30,
-      () => this.loadStats(),
+    const { activeSessions, ...stats } = await cache.remember('admin:stats:v1', 30, () =>
+      this.loadStats(),
     );
     return {
       ...stats,
@@ -98,9 +96,15 @@ export abstract class AdminService {
       db
         .select({
           total: sql<number>`count(*)`.mapWith(Number),
-          active: sql<number>`sum(case when ${users.isActive} = 1 then 1 else 0 end)`.mapWith(Number),
-          pending: sql<number>`sum(case when ${users.isActive} = 0 then 1 else 0 end)`.mapWith(Number),
-          admins: sql<number>`sum(case when ${users.isAdmin} = 1 then 1 else 0 end)`.mapWith(Number),
+          active: sql<number>`sum(case when ${users.isActive} = 1 then 1 else 0 end)`.mapWith(
+            Number,
+          ),
+          pending: sql<number>`sum(case when ${users.isActive} = 0 then 1 else 0 end)`.mapWith(
+            Number,
+          ),
+          admins: sql<number>`sum(case when ${users.isAdmin} = 1 then 1 else 0 end)`.mapWith(
+            Number,
+          ),
         })
         .from(users)
         .then((rows) => rows[0]!),
@@ -109,12 +113,22 @@ export abstract class AdminService {
       db.$count(tasks, gte(tasks.createdAt, thirtyDaysAgo)),
       db
         .select({
-          planned: sql<number>`coalesce(sum(${dailyUserMetrics.plannedTasksCount}), 0)`.mapWith(Number),
-          pending: sql<number>`coalesce(sum(${dailyUserMetrics.pendingTasksCount}), 0)`.mapWith(Number),
-          inProgress: sql<number>`coalesce(sum(${dailyUserMetrics.inProgressTasksCount}), 0)`.mapWith(Number),
-          completed: sql<number>`coalesce(sum(${dailyUserMetrics.completedTasksCount}), 0)`.mapWith(Number),
-          plannedMinutes: sql<number>`coalesce(sum(${dailyUserMetrics.plannedMinutes}), 0)`.mapWith(Number),
-          completedMinutes: sql<number>`coalesce(sum(${dailyUserMetrics.completedMinutes}), 0)`.mapWith(Number),
+          planned: sql<number>`coalesce(sum(${dailyUserMetrics.plannedTasksCount}), 0)`.mapWith(
+            Number,
+          ),
+          pending: sql<number>`coalesce(sum(${dailyUserMetrics.pendingTasksCount}), 0)`.mapWith(
+            Number,
+          ),
+          inProgress:
+            sql<number>`coalesce(sum(${dailyUserMetrics.inProgressTasksCount}), 0)`.mapWith(Number),
+          completed: sql<number>`coalesce(sum(${dailyUserMetrics.completedTasksCount}), 0)`.mapWith(
+            Number,
+          ),
+          plannedMinutes: sql<number>`coalesce(sum(${dailyUserMetrics.plannedMinutes}), 0)`.mapWith(
+            Number,
+          ),
+          completedMinutes:
+            sql<number>`coalesce(sum(${dailyUserMetrics.completedMinutes}), 0)`.mapWith(Number),
         })
         .from(dailyUserMetrics)
         .where(gte(dailyUserMetrics.localDate, thirtyDaysAgoDate)),
@@ -166,17 +180,19 @@ export abstract class AdminService {
   private static async listUsersPage(limit: number, cursor: string | undefined, pending: boolean) {
     const context = { scope: pending ? 'admin-pending-users' : 'admin-users' } as const;
     const decoded = cursor ? decodeStringIdCursor(cursor, context) : null;
-    if (cursor && !decoded) throw new ApiError(400, 'Cursor de paginación inválido', 'INVALID_CURSOR');
+    if (cursor && !decoded)
+      throw new ApiError(400, 'Cursor de paginación inválido', 'INVALID_CURSOR');
     const rows = await db
       .select(USER_COLUMNS)
       .from(users)
-      .where(and(
-        pending ? eq(users.isActive, false) : undefined,
-        decoded ? beforeStringIdCursor(
-          { value: users.createdAt, id: users.id },
-          decoded,
-        ) : undefined,
-      ))
+      .where(
+        and(
+          pending ? eq(users.isActive, false) : undefined,
+          decoded
+            ? beforeStringIdCursor({ value: users.createdAt, id: users.id }, decoded)
+            : undefined,
+        ),
+      )
       .orderBy(desc(users.createdAt), desc(users.id))
       .limit(limit + 1);
     return toStringIdCursorPage(rows, limit, (row) => row.createdAt, context);
@@ -198,7 +214,8 @@ export abstract class AdminService {
 
   static async revokeSessions(targetUserId: number): Promise<void> {
     await db.transaction(async (tx) => {
-      await tx.update(users)
+      await tx
+        .update(users)
         .set({ tokenVersion: sql`${users.tokenVersion} + 1` })
         .where(eq(users.id, targetUserId));
       await RefreshTokenService.revokeAllForUser(targetUserId, tx);
@@ -234,16 +251,18 @@ export abstract class AdminService {
           isAdmin,
           tokenVersion: sql`${users.tokenVersion} + 1`,
         })
-        .where(and(
-          eq(users.id, targetUserId),
-          eq(users.isAdmin, !isAdmin),
-          isAdmin
-            ? sql`1 = 1`
-            : sql`EXISTS (
+        .where(
+          and(
+            eq(users.id, targetUserId),
+            eq(users.isAdmin, !isAdmin),
+            isAdmin
+              ? sql`1 = 1`
+              : sql`EXISTS (
                 SELECT 1 FROM ${users} AS other_admin
                 WHERE other_admin.isAdmin = 1 AND other_admin.id != ${targetUserId}
               )`,
-        ))
+          ),
+        )
         .returning(USER_COLUMNS);
 
       if (!changed) return undefined;

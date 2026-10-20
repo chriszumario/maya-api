@@ -2,3 +2,10 @@
 root = "tests"
 preload = ["./tests/setup.ts"]
 
+[lint.rules]
+"@typescript-eslint/no-explicit-any" = "error"
+
+[fmt]
+printWidth = 100
+singleQuote = true
+ignorePatterns = ["drizzle/**"]

@@ -12,7 +12,11 @@ export async function requireOwnedGoal(userId: number, goalId: number) {
   return goal;
 }
 
-export async function requireOwnedTask(userId: number, taskId: number, executor: DatabaseExecutor = db) {
+export async function requireOwnedTask(
+  userId: number,
+  taskId: number,
+  executor: DatabaseExecutor = db,
+) {
   const task = await executor.query.tasks.findFirst({
     where: { id: taskId, goal: { userId } },
     columns: {

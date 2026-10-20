@@ -20,11 +20,7 @@ export abstract class NutritionService {
     });
 
     if (!entry) {
-      throw new ApiError(
-        404,
-        'Registro de nutrición no encontrado',
-        'NUTRITION_NOT_FOUND'
-      );
+      throw new ApiError(404, 'Registro de nutrición no encontrado', 'NUTRITION_NOT_FOUND');
     }
 
     return entry;
@@ -56,8 +52,8 @@ export abstract class NutritionService {
         where,
         beforeDateIdCursor(
           { localDate: nutritionEntries.localDate, id: nutritionEntries.id },
-          decodedCursor
-        )
+          decodedCursor,
+        ),
       )!;
     }
 
@@ -71,25 +67,15 @@ export abstract class NutritionService {
     return toDateIdCursorPage(rows, limit, cursorContext);
   }
 
-  static async update(
-    userId: number,
-    entryId: number,
-    data: UpdateNutritionDTO
-  ) {
+  static async update(userId: number, entryId: number, data: UpdateNutritionDTO) {
     const [updated] = await db
       .update(nutritionEntries)
       .set(data)
-      .where(
-        and(eq(nutritionEntries.id, entryId), eq(nutritionEntries.userId, userId))
-      )
+      .where(and(eq(nutritionEntries.id, entryId), eq(nutritionEntries.userId, userId)))
       .returning();
 
     if (!updated) {
-      throw new ApiError(
-        404,
-        'Registro de nutrición no encontrado',
-        'NUTRITION_NOT_FOUND'
-      );
+      throw new ApiError(404, 'Registro de nutrición no encontrado', 'NUTRITION_NOT_FOUND');
     }
 
     return updated;
@@ -98,17 +84,11 @@ export abstract class NutritionService {
   static async delete(userId: number, entryId: number) {
     const [deleted] = await db
       .delete(nutritionEntries)
-      .where(
-        and(eq(nutritionEntries.id, entryId), eq(nutritionEntries.userId, userId))
-      )
+      .where(and(eq(nutritionEntries.id, entryId), eq(nutritionEntries.userId, userId)))
       .returning({ id: nutritionEntries.id });
 
     if (!deleted) {
-      throw new ApiError(
-        404,
-        'Registro de nutrición no encontrado',
-        'NUTRITION_NOT_FOUND'
-      );
+      throw new ApiError(404, 'Registro de nutrición no encontrado', 'NUTRITION_NOT_FOUND');
     }
 
     return deleted;
