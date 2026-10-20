@@ -57,7 +57,7 @@ describe('RefreshTokenService.issue', () => {
 
     await RefreshTokenService.issue(9);
 
-    expect(fake.update).toHaveBeenCalledTimes(1);
+    expect(fake.update).toHaveBeenCalledTimes(2);
     expect(fake.set).toHaveBeenCalledWith({ revokedAt: expect.anything() });
   });
 });
@@ -87,7 +87,7 @@ describe('RefreshTokenService.rotate', () => {
       status: 401,
       type: 'REFRESH_TOKEN_REUSE',
     });
-    expect(fake.update).toHaveBeenCalledTimes(1);
+    expect(fake.update).toHaveBeenCalledTimes(2);
   });
 
   test.serial('rotates an active token in the same family', async () => {
@@ -138,7 +138,7 @@ describe('RefreshTokenService.rotate', () => {
     const keyHash = hashToken(key);
     const result = { accessToken: 'winner-access-token', refreshToken: 'winner-refresh-token' };
     const encryptedResult = await encryptRefreshRotationResult(
-      result,
+      { ...result, tokenVersion: activeToken.tokenVersion },
       `${activeToken.id}:2:${activeToken.familyId}:${keyHash}`,
     );
     const fake = refreshTransaction({
@@ -168,6 +168,26 @@ describe('RefreshTokenService.rotate', () => {
     expect(fake.update).not.toHaveBeenCalled();
   });
 
+  test.serial('upgrades legacy encrypted replays without replacing their refresh token', async () => {
+    const rawToken = 'legacy-refresh-token-value-1234567890';
+    const key = deriveRefreshIdempotencyKey(rawToken);
+    const keyHash = hashToken(key);
+    const encryptedResult = await encryptRefreshRotationResult(
+      { accessToken: 'old-access', refreshToken: 'same-successor' },
+      `${activeToken.id}:2:${activeToken.familyId}:${keyHash}`,
+    );
+    const fake = refreshTransaction({
+      ...activeToken, revokedAt: '2026-09-07 10:00:00', rotationKeyHash: keyHash,
+      encryptedResult, replayActive: true, successorTokenId: 2,
+      successorRevokedAt: null, successorExpired: false,
+    });
+    spyOn(db, 'transaction').mockImplementation(async (callback) => callback(fake.tx as never));
+    expect(await RefreshTokenService.rotate(rawToken, key, signAccessToken)).toEqual({
+      accessToken: 'signed-access-token', refreshToken: 'same-successor',
+    });
+    expect(fake.set).toHaveBeenCalledWith({ encryptedResult: expect.any(String) });
+  });
+
   test.serial('revokes a consumed token family when the key differs', async () => {
     const rawToken = 'reused-refresh-token-value-1234567890';
     const fake = refreshTransaction({
@@ -180,7 +200,7 @@ describe('RefreshTokenService.rotate', () => {
       RefreshTokenService.rotate(rawToken, deriveRefreshIdempotencyKey('another-token'), signAccessToken),
       { status: 401, type: 'REFRESH_TOKEN_REUSE' },
     );
-    expect(fake.update).toHaveBeenCalledTimes(1);
+    expect(fake.update).toHaveBeenCalledTimes(2);
   });
 
   test.serial('revokes the family after the replay window expires', async () => {
@@ -202,7 +222,7 @@ describe('RefreshTokenService.rotate', () => {
       status: 401,
       type: 'REFRESH_TOKEN_REUSE',
     });
-    expect(fake.update).toHaveBeenCalledTimes(1);
+    expect(fake.update).toHaveBeenCalledTimes(2);
   });
 });
 

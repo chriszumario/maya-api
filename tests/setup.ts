@@ -1,6 +1,7 @@
 process.env.NODE_ENV = 'test';
 process.env.APP_ENV = 'development';
 process.env.REDIS_URL = 'redis://127.0.0.1:6379';
+process.env.ALLOWED_ORIGINS = 'http://localhost:3000';
 process.env.JWT_SECRET = 'test-only-jwt-secret-with-at-least-32-characters';
 process.env.REFRESH_ROTATION_ENCRYPTION_KEY = 'MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY';
 process.env.TURSO_DATABASE_URL = 'http://127.0.0.1:8080';

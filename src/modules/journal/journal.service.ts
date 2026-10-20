@@ -33,6 +33,8 @@ export abstract class JournalService {
       .values({ userId, localDate, ...data })
       .returning();
 
+    if (!entry) throw new Error('Journal entry insert returned no row');
+
     return entry;
   }
 

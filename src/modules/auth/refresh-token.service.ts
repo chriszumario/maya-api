@@ -157,19 +157,26 @@ export abstract class RefreshTokenService {
         && existing.encryptedResult !== null
         && existing.encryptedResult !== undefined
       ) {
-        const result = await decryptRefreshRotationResult(
-          existing.encryptedResult,
-          rotationAdditionalData(
-            existing.id,
-            existing.successorTokenId,
-            existing.familyId,
-            idempotencyKeyHash,
-          ),
+        const additionalData = rotationAdditionalData(
+          existing.id,
+          existing.successorTokenId,
+          existing.familyId,
+          idempotencyKeyHash,
         );
+        const { tokenVersion, ...result } = await decryptRefreshRotationResult(existing.encryptedResult, additionalData);
+        // A security event in another family may have invalidated the cached access JWT.
+        if (tokenVersion !== existing.tokenVersion) {
+          result.accessToken = await signAccessToken({ userId: existing.userId, tokenVersion: existing.tokenVersion });
+          await tx.update(refreshTokenRotations).set({
+            encryptedResult: await encryptRefreshRotationResult(
+              { ...result, tokenVersion: existing.tokenVersion }, additionalData,
+            ),
+          }).where(eq(refreshTokenRotations.sourceTokenId, existing.id));
+        }
         return { kind: 'success' as const, result };
       }
 
-      await this.revokeFamily(existing.familyId, tx);
+      await this.revokeFamily(existing.userId, existing.familyId, tx);
       return { kind: 'reuse' as const };
     }
 
@@ -228,7 +235,7 @@ export abstract class RefreshTokenService {
       sourceTokenId: existing.id,
       successorTokenId: successor.id,
       idempotencyKeyHash,
-      encryptedResult: await encryptRefreshRotationResult(result, additionalData),
+      encryptedResult: await encryptRefreshRotationResult({ ...result, tokenVersion: existing.tokenVersion }, additionalData),
       replayExpiresAt: sql`datetime('now', ${`+${REPLAY_WINDOW_SECONDS} seconds`})`,
     });
     await this.deleteExpiredRotations(tx);
@@ -252,23 +259,11 @@ export abstract class RefreshTokenService {
 
       if (!existing) return;
 
-      const revoked = await tx
-        .update(refreshTokens)
-        .set({ revokedAt: sql`CURRENT_TIMESTAMP` })
-        .where(and(eq(refreshTokens.familyId, existing.familyId), isNull(refreshTokens.revokedAt)))
-        .returning({ id: refreshTokens.id });
-
-      if (revoked.length > 0) {
-        await this.deleteFamilyRotations(existing.familyId, tx);
-        await tx
-          .update(users)
-          .set({ tokenVersion: sql`${users.tokenVersion} + 1` })
-          .where(eq(users.id, existing.userId));
-      }
+      await this.revokeFamily(existing.userId, existing.familyId, tx);
     });
   }
 
-  static async revokeAllForUser(userId: number, tx: Transaction | typeof db = db): Promise<void> {
+  static async revokeAllForUser(userId: number, tx: Transaction): Promise<void> {
     await tx
       .update(refreshTokens)
       .set({ revokedAt: sql`CURRENT_TIMESTAMP` })
@@ -327,10 +322,16 @@ export abstract class RefreshTokenService {
     if (active.length <= MAX_ACTIVE_SESSIONS) return;
 
     const overflowIds = active.slice(0, active.length - MAX_ACTIVE_SESSIONS).map((row) => row.id);
-    await tx
+    const revoked = await tx
       .update(refreshTokens)
       .set({ revokedAt: sql`CURRENT_TIMESTAMP` })
-      .where(inArray(refreshTokens.id, overflowIds));
+      .where(and(inArray(refreshTokens.id, overflowIds), isNull(refreshTokens.revokedAt)))
+      .returning({ id: refreshTokens.id });
+    if (revoked.length > 0) {
+      await tx.update(users)
+        .set({ tokenVersion: sql`${users.tokenVersion} + 1` })
+        .where(eq(users.id, userId));
+    }
   }
 
   private static async deleteOldHistory(tx: Transaction): Promise<void> {
@@ -351,11 +352,17 @@ export abstract class RefreshTokenService {
       .where(lte(refreshTokenRotations.replayExpiresAt, sql`CURRENT_TIMESTAMP`));
   }
 
-  private static async revokeFamily(familyId: string, tx: Transaction): Promise<void> {
-    await tx
+  private static async revokeFamily(userId: number, familyId: string, tx: Transaction): Promise<void> {
+    const revoked = await tx
       .update(refreshTokens)
       .set({ revokedAt: sql`CURRENT_TIMESTAMP` })
-      .where(and(eq(refreshTokens.familyId, familyId), isNull(refreshTokens.revokedAt)));
+      .where(and(eq(refreshTokens.familyId, familyId), isNull(refreshTokens.revokedAt)))
+      .returning({ id: refreshTokens.id });
+    if (revoked.length > 0) {
+      await tx.update(users)
+        .set({ tokenVersion: sql`${users.tokenVersion} + 1` })
+        .where(eq(users.id, userId));
+    }
     await this.deleteFamilyRotations(familyId, tx);
   }
 

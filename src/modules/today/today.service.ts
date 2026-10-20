@@ -2,9 +2,6 @@ import { db } from '@/db/drizzle';
 import { getUserLocalDate, isTaskScheduledOnDate } from '@/lib';
 import type { TodayModel } from './today.model';
 
-const TASK_STATUSES = ['pending', 'in_progress', 'completed'] as const satisfies string[];
-type TaskStatus = (typeof TASK_STATUSES)[number];
-
 const TASK_COLUMNS = {
   id: true,
   title: true,
@@ -18,8 +15,6 @@ const TASK_LOG_COLUMNS = {
   taskId: true,
   status: true,
   durationMinutes: true,
-  id: true,
-  updatedAt: true,
 } as const;
 
 export abstract class TodayService {
@@ -42,18 +37,14 @@ export abstract class TodayService {
           task: { goal: { userId } },
         },
         columns: TASK_LOG_COLUMNS,
-        orderBy: { updatedAt: 'desc', id: 'desc' },
       }),
     ]);
 
-    const logsByTaskId = new Map<number, (typeof dayLogs)[number]>();
-    for (const log of dayLogs) {
-      if (!logsByTaskId.has(log.taskId)) logsByTaskId.set(log.taskId, log);
-    }
+    const logsByTaskId = new Map(dayLogs.map((log) => [log.taskId, log]));
 
     const scheduledTasks = candidateTasks
       .filter((task) => isTaskScheduledOnDate(task, localDate))
-      .map((task) => {
+      .map((task): TodayModel['response']['tasks'][number] => {
         const log = logsByTaskId.get(task.id);
         return {
           id: task.id,
@@ -61,7 +52,7 @@ export abstract class TodayService {
           estimatedMinutes: task.estimatedMinutes,
           startTime: task.startTime,
           goalTitle: task.goal.title,
-          status: (log?.status as TaskStatus) ?? 'pending',
+          status: log?.status ?? 'pending',
           durationMinutes: log?.durationMinutes ?? 0,
         };
       });

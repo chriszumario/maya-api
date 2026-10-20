@@ -37,7 +37,7 @@ export const httpLogger = (app: Elysia) => app
 		requests.set(request, { startedAt: Bun.nanoseconds(), requestId })
 		set.headers['x-request-id'] = requestId
 	})
-	.afterResponse('global', ({ request, route, path, set }) => {
+	.afterResponse('global', ({ request, route, path, set, responseValue }) => {
 		const timing = requests.get(request)
 		if (!timing || path === '/') return
 		const registeredPath = route ?? app.routes.find((candidate) => candidate.path === path)?.path
@@ -45,7 +45,7 @@ export const httpLogger = (app: Elysia) => app
 			requestIdHash: Bun.CryptoHasher.hash('sha256', timing.requestId, 'hex'),
 			method: request.method,
 			route: registeredPath ?? '[unmatched]',
-			status: set.status ?? 200,
+			status: responseValue instanceof Response ? responseValue.status : set.status ?? 200,
 			durationMs: (Bun.nanoseconds() - timing.startedAt) / 1_000_000,
 		})
 	})

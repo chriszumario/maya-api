@@ -4,8 +4,9 @@ import { env } from '@/lib/env'
 import { errorDetails, logger } from '@/lib/logger'
 
 export const redis = new RedisClient(env.REDIS_URL, {
-	connectionTimeout: 10_000,
-	maxRetries: 3,
+	connectionTimeout: 1_000,
+	idleTimeout: 5_000,
+	autoReconnect: false,
 	enableOfflineQueue: false,
 })
 
@@ -21,5 +22,5 @@ export async function ensureRedisConnection(): Promise<void> {
 }
 
 redis.onclose = (error) => {
-	logger.error('Conexión Redis cerrada', errorDetails(error))
+	if (error) logger.warn('Conexión Redis cerrada', errorDetails(error))
 }

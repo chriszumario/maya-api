@@ -36,11 +36,21 @@ Opcionales: `PORT` (4000 por defecto), `MAX_REQUEST_BODY_BYTES` (1 MiB),
 `ALLOWED_ORIGINS` y `GROQ_API_KEY`
 (necesaria para las rutas `/ai/*`).
 
+`ALLOWED_ORIGINS` acepta orígenes HTTP(S) completos separados por comas, por ejemplo
+`https://maya.example.com,http://localhost:3000`, sin rutas, barra final ni comodines.
+La comparación es exacta. Los headers CORS admitidos y expuestos están documentados
+en la [guía de integración](./maya-api.md#cors).
+
 Aplica las migraciones versionadas antes de usar la API:
 
 ```bash
 bun run db:migrate
 ```
+
+`drizzle/20261016132907_initial` es una **nueva base inicial**, generada del esquema
+actual por decisión del proyecto. Está destinada a una base vacía; una base que ya
+tenga tablas requiere reconciliar su esquema e historial antes de ejecutar esta
+migración. La auditoría no ejecutó `db:migrate` ni `db:push` contra Turso.
 
 ## Desarrollo
 
@@ -56,7 +66,21 @@ errores usan el formato `{ "error": { "code": string, "message": string } }`.
 
 `POST /auth/refresh` requiere el header `Idempotency-Key` con el valor
 `base64url(SHA-256(refreshToken))`, sin padding. Reintentos con el mismo token y
-la misma clave reciben exactamente el mismo par de tokens durante 10 segundos.
+la misma clave reciben el mismo par de tokens durante 10 segundos, salvo si un
+evento de seguridad invalidó su access JWT: se reemite ese JWT con la versión
+actual, conservando el refresh token y la fecha límite original del replay.
+
+La revocación administrativa de sesiones invalida tanto los refresh tokens como
+todos los access JWT anteriores del usuario, en una única transacción.
+La reutilización de un refresh token y la expulsión por superar 10 sesiones
+también invalidan todos los access JWT del usuario. Solo se revoca la familia
+afectada; las demás pueden renovar con sus refresh tokens activos. Una familia
+ya revocada no vuelve a incrementar la versión de seguridad al repetir la petición.
+En producción, el rate limiter devuelve 503 si Redis falla o no responde en un
+segundo; ese presupuesto incluye la conexión. La caché conserva su presupuesto de
+150 ms y su fallback a la base de datos. El cliente Redis limita la conexión a un
+segundo y cierra el socket tras cinco segundos sin recibir datos. La siguiente
+operación establece una nueva conexión; no se encolan comandos offline.
 
 ## Módulos principales
 
@@ -85,3 +109,13 @@ bun run start
 ```
 
 `verify` ejecuta typecheck, lint, tests, validación de migraciones, build y una prueba de arranque del bundle. El build usa el plugin AOT de Elysia y genera la salida en `dist/`.
+
+`bun run test:services` ejecuta pruebas adicionales con servidores reales de
+libSQL y Redis/Valkey aislados. Requiere `sqld` y `redis-server` (>=7.2) o
+`valkey-server` en PATH, o las rutas `TEST_SQLD_BIN` y `TEST_REDIS_BIN`.
+Consulta los [requisitos y escenarios](./tests/README.md#servicios-reales).
+
+GitHub Actions ejecuta instalación con lockfile congelado, `verify`, `bun audit`
+y pruebas de servicios con contenedores efímeros. Las acciones están fijadas por SHA.
+
+Consulta los hallazgos, alcance y riesgos pendientes en [AUDIT.md](./AUDIT.md).

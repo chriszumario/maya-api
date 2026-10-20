@@ -1,30 +1,17 @@
 import { ensureRedisConnection, redis } from '@/db/redis';
 import { env } from './env';
+import { withTimeout } from './timeout';
 
 const REDIS_TIMEOUT_MS = 150;
 const pending = new Map<string, Promise<unknown>>();
 const cacheKey = (key: string) => `maya:${env.APP_ENV}:cache:${key}`;
-
-async function withTimeout<T>(operation: () => Promise<T>): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try {
-    return await Promise.race([
-      operation(),
-      new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new Error('Cache timeout')), REDIS_TIMEOUT_MS);
-      }),
-    ]);
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 export async function getCached<T>(key: string): Promise<T | null> {
   return withTimeout(async () => {
     await ensureRedisConnection();
     const value = await redis.send('GET', [cacheKey(key)]);
     return value === null ? null : JSON.parse(value as string) as T;
-  });
+  }, REDIS_TIMEOUT_MS);
 }
 
 export async function setCached(key: string, value: unknown, ttlSeconds: number): Promise<void> {
@@ -36,7 +23,7 @@ export async function setCached(key: string, value: unknown, ttlSeconds: number)
   await withTimeout(async () => {
     await ensureRedisConnection();
     await redis.send('SET', [cacheKey(key), serialized, 'EX', String(ttlSeconds)]);
-  });
+  }, REDIS_TIMEOUT_MS);
 }
 
 export async function invalidateCache(...keys: string[]): Promise<void> {
@@ -44,7 +31,7 @@ export async function invalidateCache(...keys: string[]): Promise<void> {
   await withTimeout(async () => {
     await ensureRedisConnection();
     await redis.send('DEL', keys.map(cacheKey));
-  });
+  }, REDIS_TIMEOUT_MS);
 }
 
 // Optional read cache only: failures must not change authentication or rate limiting.

@@ -82,10 +82,10 @@ export const admin = new Elysia({ prefix: '/admin', name: 'module.admin', tags: 
     {
       params: AdminModel.params,
       response: { 200: AdminModel.revokedResponse },
-      detail: { summary: 'Revocar sesiones del usuario', description: 'Revoca todos los refresh tokens activos.' },
+      detail: { summary: 'Revocar sesiones del usuario', description: 'Revoca todos los refresh tokens e invalida los access JWT del usuario en una transacción.' },
     },
     async ({ params }) => {
-      await RefreshTokenService.revokeAllForUser(params.id);
+      await AdminService.revokeSessions(params.id);
       return { status: 'sessions_revoked' as const };
     }
   );

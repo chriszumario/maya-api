@@ -15,8 +15,5 @@ export const today = new Elysia({ name: 'module.today', tags: ['Today'] })
         description: 'Devuelve las tareas programadas para la pantalla Mi día.',
       },
     },
-    async ({ userId, set }) => {
-      set.headers['cache-control'] = 'private, no-store';
-      return TodayService.getToday(userId);
-    },
+    ({ userId }) => TodayService.getToday(userId),
   );

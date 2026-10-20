@@ -52,7 +52,7 @@ export function constantTimeEqual(first: string, second: string): boolean {
 }
 
 export async function encryptRefreshRotationResult(
-  result: { accessToken: string; refreshToken: string },
+  result: { accessToken: string; refreshToken: string; tokenVersion?: number },
   additionalData: string,
 ): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -71,7 +71,7 @@ export async function encryptRefreshRotationResult(
 export async function decryptRefreshRotationResult(
   encryptedResult: string,
   additionalData: string,
-): Promise<{ accessToken: string; refreshToken: string }> {
+): Promise<{ accessToken: string; refreshToken: string; tokenVersion?: number }> {
   const [encodedIv, encodedCiphertext, extra] = encryptedResult.split('.');
   if (!encodedIv || !encodedCiphertext || extra !== undefined) throw new Error('Invalid ciphertext');
 
@@ -95,7 +95,16 @@ export async function decryptRefreshRotationResult(
   ) {
     throw new Error('Invalid refresh rotation result');
   }
-  return { accessToken: result.accessToken, refreshToken: result.refreshToken };
+  const tokenVersion = 'tokenVersion' in result ? result.tokenVersion : undefined;
+  if (tokenVersion !== undefined && (typeof tokenVersion !== 'number'
+    || !Number.isSafeInteger(tokenVersion) || tokenVersion < 0)) {
+    throw new Error('Invalid refresh rotation version');
+  }
+  return {
+    accessToken: result.accessToken,
+    refreshToken: result.refreshToken,
+    ...(tokenVersion === undefined ? {} : { tokenVersion }),
+  };
 }
 
 export function newSessionId(): string {

@@ -42,7 +42,6 @@ export abstract class AuthService {
         ...PUBLIC_USER_COLUMNS,
         isActive: users.isActive,
         passwordHash: users.passwordHash,
-        tokenVersion: users.tokenVersion,
       })
       .from(users)
       .where(eq(users.email, data.email))
@@ -63,7 +62,7 @@ export abstract class AuthService {
 
     const session = await db.transaction(async (tx) => {
       const [currentUser] = await tx
-        .select({ tokenVersion: users.tokenVersion })
+        .select({ id: users.id })
         .from(users)
         .where(and(
           eq(users.id, user.id),
@@ -74,7 +73,11 @@ export abstract class AuthService {
 
       if (!currentUser) return undefined;
       const refreshToken = await RefreshTokenService.issue(user.id, tx);
-      return { refreshToken, tokenVersion: currentUser.tokenVersion };
+      // Issuance may evict a session; read the version after its security update.
+      const [version] = await tx.select({ tokenVersion: users.tokenVersion })
+        .from(users).where(eq(users.id, user.id)).limit(1);
+      if (!version) throw new Error('Session user disappeared during issuance');
+      return { refreshToken, tokenVersion: version.tokenVersion };
     });
 
     if (!session) {

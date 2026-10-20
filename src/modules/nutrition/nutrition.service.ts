@@ -36,6 +36,7 @@ export abstract class NutritionService {
       .insert(nutritionEntries)
       .values({ userId, localDate, ...data })
       .returning();
+    if (!entry) throw new Error('Nutrition entry insert returned no row');
     return entry;
   }
 

@@ -52,6 +52,7 @@ export abstract class TaskLogsService {
           },
         })
         .returning();
+      if (!created) throw new Error('Task log upsert returned no row');
       await DailyMetricsService.rebuild(userId, localDate, tx);
       return created;
     });

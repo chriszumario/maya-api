@@ -196,6 +196,15 @@ export abstract class AdminService {
     return user;
   }
 
+  static async revokeSessions(targetUserId: number): Promise<void> {
+    await db.transaction(async (tx) => {
+      await tx.update(users)
+        .set({ tokenVersion: sql`${users.tokenVersion} + 1` })
+        .where(eq(users.id, targetUserId));
+      await RefreshTokenService.revokeAllForUser(targetUserId, tx);
+    });
+  }
+
   static async rejectUser(targetUserId: number, adminUserId: number) {
     if (targetUserId === adminUserId) {
       throw new ApiError(400, 'No puedes rechazarte a ti mismo', 'SELF_ACTION_FORBIDDEN');

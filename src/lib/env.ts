@@ -48,7 +48,13 @@ const EnvSchema = v.object({
   ALLOWED_ORIGINS: v.optional(
     v.pipe(
       v.string(),
-      v.transform((value) => value.split(',').map((origin) => origin.trim()).filter(Boolean))
+      v.transform((value) => value.split(',').map((origin) => origin.trim()).filter(Boolean)),
+      v.check((origins) => origins.length > 0 && origins.every((origin) => {
+        const url = URL.parse(origin);
+        return url !== null
+          && (url.protocol === 'https:' || url.protocol === 'http:')
+          && url.origin === origin;
+      }), 'debe contener orígenes HTTP(S) completos, sin rutas ni comodines'),
     ),
     'http://localhost:3000'
   ),

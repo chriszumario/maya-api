@@ -108,10 +108,7 @@ describe('TodayService.getToday', () => {
         taskId: true,
         status: true,
         durationMinutes: true,
-        id: true,
-        updatedAt: true,
       },
-      orderBy: { updatedAt: 'desc', id: 'desc' },
     });
   });
 });

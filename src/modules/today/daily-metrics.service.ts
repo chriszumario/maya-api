@@ -61,6 +61,7 @@ export abstract class DailyMetricsService {
       })
       .returning();
 
+    if (!metrics) throw new Error('Daily metrics upsert returned no row');
     return metrics;
   }
 

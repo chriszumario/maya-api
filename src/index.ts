@@ -24,8 +24,15 @@ const healthResponse = v.object({
 
 export const app = new Elysia({ name: 'maya-api' })
   .use(httpLogger)
-  .use(cors({ origin: env.ALLOWED_ORIGINS }))
+  .use(cors({
+    origin: (request) => env.ALLOWED_ORIGINS.includes(request.headers.get('origin') ?? ''),
+    preflight: false,
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key', 'X-Request-Id'],
+    exposeHeaders: ['X-Request-Id', 'X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset', 'Retry-After'],
+  }))
   .use(errorHandler)
+  .options('/*', ({ status }) => status(204))
   .get(
     '/',
     {

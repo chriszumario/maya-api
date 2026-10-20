@@ -54,6 +54,7 @@ export abstract class TasksService {
       }
 
       const [created] = await tx.insert(tasks).values({ goalId, ...data }).returning();
+      if (!created) throw new Error('Task insert returned no row');
       await DailyMetricsService.rebuild(userId, localDate, tx);
       return created;
     });

@@ -1,5 +1,8 @@
 import { ensureRedisConnection, redis } from '@/db/redis'
 import { env } from '@/lib/env'
+import { withTimeout } from './timeout'
+
+const RATE_LIMIT_TIMEOUT_MS = 1_000
 
 // Increment and expiry must be atomic, including recovery of old keys without a TTL.
 const RATE_LIMIT_SCRIPT = `
@@ -17,13 +20,14 @@ export async function checkRateLimit(
 	limit: number,
 	windowMs: number,
 ) {
-	await ensureRedisConnection()
-
 	const storageKey = Bun.CryptoHasher.hash('sha256', key, 'hex')
 	const redisKey = `maya:${env.APP_ENV}:rate:${storageKey}`
-	const result = await redis.send('EVAL', [RATE_LIMIT_SCRIPT, '1', redisKey, String(windowMs)])
+	const result: unknown = await withTimeout(async () => {
+		await ensureRedisConnection()
+		return redis.send('EVAL', [RATE_LIMIT_SCRIPT, '1', redisKey, String(windowMs)])
+	}, RATE_LIMIT_TIMEOUT_MS)
 	if (!Array.isArray(result) || result.length !== 2) throw new Error('Invalid rate limit result')
-	const [count, retryAfterMs] = result as unknown[]
+	const [count, retryAfterMs] = result
 	if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 1
 		|| typeof retryAfterMs !== 'number' || !Number.isSafeInteger(retryAfterMs) || retryAfterMs < 0) {
 		throw new Error('Invalid rate limit result')

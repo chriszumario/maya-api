@@ -21,10 +21,14 @@ export const rateLimit = new Elysia({ name: 'rate-limit' })
 			ip: true,
 			async beforeHandle(context) {
 				const { set, status } = context
-				const { ip, userId } = context as typeof context & { ip: string; userId?: number }
+				const ip = 'ip' in context ? context.ip : undefined
+				const userId = 'userId' in context ? context.userId : undefined
 
 				if (env.APP_ENV === 'development') return
-				if (identifier === 'user' && !Number.isSafeInteger(userId)) {
+				if (identifier === 'ip' && typeof ip !== 'string') {
+					throw new Error('IP context is required for rate limiting')
+				}
+				if (identifier === 'user' && (typeof userId !== 'number' || !Number.isSafeInteger(userId) || userId < 1)) {
 					return status(401, failure('UNAUTHORIZED', 'No autorizado'))
 				}
 

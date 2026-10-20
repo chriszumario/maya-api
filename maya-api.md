@@ -10,6 +10,7 @@ Este documento describe el contrato JSON implementado actualmente por la API.
 - Una operación exitosa que no devuelve un recurso usa `{ "status": "..." }`.
 - Un `DELETE` devuelve `{ "id": number }` con el identificador eliminado.
 - Los campos opcionales pueden omitirse al enviar una solicitud.
+- Los campos desconocidos se descartan mediante Valibot; no permiten modificar propietarios ni privilegios.
 - Los campos `nullable` aparecen en la respuesta con un valor o con `null`.
 - Una fecha local usa `YYYY-MM-DD` y una hora local usa `HH:MM` en formato de 24 horas.
 
@@ -52,7 +53,21 @@ Estados HTTP habituales:
 | `422` | Body, query o parámetro inválido |
 | `502` | El proveedor de IA falló, devolvió una respuesta vacía o devolvió datos inválidos |
 | `503` | Servicio temporalmente no disponible, incluida una rotación concurrente que todavía está en curso |
-| `500` | Error interno sin detalles sensibles |
+| `500` | Error interno o respuesta del servidor que incumple su contrato, sin detalles sensibles |
+
+### CORS
+
+El servidor permite exclusivamente los orígenes configurados en `ALLOWED_ORIGINS`.
+El preflight `OPTIONS` responde 204 sin cuerpo. Métodos permitidos: GET, HEAD, POST,
+PATCH, DELETE y OPTIONS. Headers de solicitud admitidos: `Content-Type`,
+`Authorization`, `Idempotency-Key` y `X-Request-Id`.
+
+El navegador puede leer `X-Request-Id`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`,
+`X-RateLimit-Reset` y `Retry-After`. Si un cliente necesita otro header de solicitud,
+debe incorporarse explícitamente a la configuración del servidor.
+
+En producción, un fallo o una espera de Redis superior a un segundo en rutas
+limitadas devuelve `503 RATE_LIMIT_UNAVAILABLE`; no se ejecuta la operación protegida.
 
 ## Tipos compartidos
 
@@ -87,12 +102,18 @@ type CursorPage<T> = {
 `accessToken` se envía en las rutas protegidas. `refreshToken` solo se usa para renovar o cerrar
 una sesión. Cuando se renuevan tokens, el cliente debe reemplazar de forma atómica ambos valores.
 Si una respuesta se pierde, puede repetir la solicitud durante 10 segundos con el refresh token
-anterior y su misma `Idempotency-Key`; la API devolverá exactamente el mismo par sucesor.
+anterior y su misma `Idempotency-Key`; la API devolverá el mismo par sucesor salvo la
+reemisión del access JWT si cambió la versión de seguridad, según se detalla en refresh.
 
 El access token dura 30 minutos y cada refresh token emitido dura 30 días. Cada usuario puede
 mantener hasta 10 sesiones activas; al superar el límite se revocan primero las más antiguas. Los
 refresh tokens pertenecen a una familia que representa una sesión iniciada en un dispositivo o
 cliente.
+
+Al expulsar una sesión por superar el límite, se invalidan todos los access JWT
+anteriores del usuario. Las familias que conservan refresh tokens activos pueden
+renovarlos; la familia expulsada debe iniciar sesión de nuevo. El nuevo login ya
+entrega un JWT con la versión actual.
 
 ## Autenticación
 
@@ -241,6 +262,12 @@ Cada refresh token es de un solo uso, pero el resultado de su rotación se conse
 `Idempotency-Key` reciben exactamente el mismo `accessToken` y `refreshToken` sucesores. El retry no
 crea otro token y no se considera reutilización durante esa ventana.
 
+Excepción de seguridad: si logout, reutilización o expulsión de otra sesión
+invalidó los access JWT del usuario, el replay reemite únicamente el access JWT
+con la versión actual. Conserva el refresh token sucesor y no amplía la ventana
+original. Los siguientes reintentos reciben el nuevo par almacenado. Los replays
+cifrados anteriores a este cambio se actualizan de la misma forma al primer uso.
+
 El cliente no debe reemplazar el refresh token almacenado hasta recibir `200`. Si ocurre un timeout
 o se pierde la respuesta, debe repetir el mismo body y la misma clave. Después de recibir `200`,
 debe guardar ambos tokens de forma atómica y derivar una nueva clave cuando llegue el momento de
@@ -250,6 +277,11 @@ Cualquier solicitud con un token consumido después de los 10 segundos se consid
 incluso si conserva la misma clave, y revoca toda la familia. Dentro de la ventana también se
 considera reutilización si falta la clave o es diferente. Si el token todavía está activo, una clave
 ausente, mal formada o diferente devuelve `400` sin consumirlo.
+
+Si la familia tenía tokens activos al detectar la reutilización, se incrementa
+`tokenVersion` en la misma transacción: todos los access JWT anteriores quedan
+invalidados. Los refresh tokens de otras familias siguen disponibles para renovar.
+Repetir solicitudes con una familia ya revocada no invalida tokens emitidos después.
 
 Errores relevantes:
 
@@ -940,6 +972,11 @@ type AdminStats = {
 | `PATCH /admin/users/:id/admin` | `{ isAdmin: boolean }` | `200 AdminUser` |
 | `GET /admin/users/:id/sessions` | — | `200 ActiveSession[]` |
 | `DELETE /admin/users/:id/sessions` | — | `200 { status: "sessions_revoked" }` |
+
+La revocación administrativa elimina los resultados de replay, revoca todos los
+refresh tokens e incrementa `tokenVersion` en una transacción. Los access JWT ya
+emitidos reciben 401 en solicitudes posteriores; el usuario debe iniciar sesión
+de nuevo. Se conserva la respuesta 200 incluso si el usuario ya no existe.
 
 `GET /admin/stats` devuelve `AdminStats`. `activity.taskExecution` ya es la suma de
 `daily_user_metrics` para los últimos 30 días. El frontend debe mostrar esos valores directamente:

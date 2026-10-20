@@ -10,7 +10,7 @@ beforeEach(() => {
 describe('optional read cache', () => {
   test.serial('preserves direct read and get-or-set helpers', async () => {
     spyOn(redis, 'send').mockResolvedValue('{"count":4}');
-    expect(await getCached('direct')).toEqual({ count: 4 });
+    expect(await getCached<{ count: number }>('direct')).toEqual({ count: 4 });
     expect(await getOrSetCached('direct', 30, async () => ({ count: 5 }))).toEqual({ count: 4 });
   });
 

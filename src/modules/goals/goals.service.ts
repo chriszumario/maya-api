@@ -43,6 +43,7 @@ export abstract class GoalsService {
       })
       .returning();
 
+    if (!goal) throw new Error('Goal insert returned no row');
     return goal;
   }
 
@@ -224,6 +225,7 @@ export abstract class GoalsService {
       .insert(goalReviews)
       .values({ goalId: owned.id, localDate, ...data })
       .returning();
+    if (!review) throw new Error('Goal review insert returned no row');
     return review;
   }
 }

@@ -6,7 +6,7 @@ const name = v.pipe(
   v.string(),
   v.trim(),
   v.nonEmpty(),
-  v.transform((value) => value[0].toUpperCase() + value.slice(1).toLowerCase()),
+  v.transform((value) => value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()),
   v.maxLength(200),
 );
 const quantity = v.pipe(v.number(), v.gtValue(0), v.maxValue(1_000_000));
@@ -14,7 +14,7 @@ const unit = v.pipe(
   v.string(),
   v.trim(),
   v.nonEmpty(),
-  v.transform((value) => value[0].toUpperCase() + value.slice(1).toLowerCase()),
+  v.transform((value) => value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()),
   v.maxLength(50),
 );
 const fields = {

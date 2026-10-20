@@ -4,10 +4,66 @@ import { AuthService } from '@/modules/auth/auth.service';
 import { jsonRequest } from '../../helpers/http';
 import { logger } from '@/lib/logger';
 import { DrizzleQueryError } from 'drizzle-orm';
+import { env } from '@/lib/env';
+import * as v from 'valibot';
 
 afterEach(() => mock.restore());
 
 describe('HTTP system contracts', () => {
+  test.serial('returns a safe 500 for invalid service responses', async () => {
+    const secret = 'private-response-value';
+    const errors = spyOn(logger, 'error').mockImplementation(async () => undefined);
+    // Correct TypeScript shape, but invalid at the response validation boundary.
+    spyOn(AuthService, 'login').mockResolvedValue({
+      user: { id: 17, name: secret, email: 'ana@example.com', isAdmin: false, timezone: secret },
+      refreshToken: secret,
+      tokenVersion: 0,
+    });
+    const response = await app.handle(jsonRequest('/auth/login', {
+      email: 'ana@example.com', password: 'valid-password',
+    }));
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: { code: 'INTERNAL_SERVER_ERROR', message: 'Ocurrió un error inesperado' },
+    });
+    expect(errors).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(errors.mock.calls)).not.toContain(secret);
+  });
+
+  test.serial('only allows exact configured CORS origins, including preflight', async () => {
+    const logs = spyOn(logger, 'info').mockImplementation(async () => undefined);
+    const allowed = env.ALLOWED_ORIGINS[0]!;
+    for (const origin of [allowed, `${allowed}.attacker.example`, 'https://attacker.example', 'null', 'constructor']) {
+      const response = await app.handle(new Request('http://localhost/auth/refresh', {
+        method: 'OPTIONS',
+        headers: {
+          origin,
+          'access-control-request-method': 'POST',
+          'access-control-request-headers': 'content-type,idempotency-key',
+        },
+      }));
+      expect(response.status).toBe(204);
+      expect(await response.text()).toBe('');
+      expect(response.headers.get('access-control-allow-origin')).toBe(origin === allowed ? allowed : null);
+      expect(response.headers.get('vary')).toContain('Origin');
+    }
+    await Bun.sleep(0);
+    expect(logs).toHaveBeenCalledTimes(5);
+    v.parse(v.array(v.tuple([v.string(), v.object({ status: v.literal(204) })])), logs.mock.calls);
+  });
+
+  test.serial('strips restricted account fields before calling registration', async () => {
+    const register = spyOn(AuthService, 'register').mockResolvedValue();
+    const response = await app.handle(jsonRequest('/auth/register', {
+      name: 'Ana', email: 'ana@example.com', password: 'valid-password', timezone: 'UTC',
+      isAdmin: true, isActive: true, tokenVersion: 10, id: 1,
+    }));
+    expect(response.status).toBe(201);
+    expect(register).toHaveBeenCalledWith({
+      name: 'Ana', email: 'ana@example.com', password: 'valid-password', timezone: 'UTC',
+    });
+  });
+
   test.serial('returns 400 for malformed JSON without exposing its contents', async () => {
     const response = await app.handle(new Request('http://localhost/auth/login', {
       method: 'POST',

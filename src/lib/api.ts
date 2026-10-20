@@ -10,7 +10,7 @@ export class ApiError extends HTTPError<string> {
   readonly type: string
 
   constructor(
-    readonly status: number,
+    override readonly status: number,
     message: string,
     code: string,
   ) {
@@ -23,7 +23,7 @@ export const errorHandler = new Elysia({ name: 'error-handler' })
   .error(ApiError, ({ error, status }) =>
     status(error.status, failure(error.type, error.message))
   )
-  .error(DrizzleQueryError, ({ error, status }) => {
+  .error(DrizzleQueryError, ({ error, status, set }) => {
     const causeMessage = error.cause instanceof Error ? error.cause.message : ''
     if (causeMessage.includes('users_email_unique')) {
       return status(400, failure('EMAIL_IN_USE', 'El correo ya está en uso'))
@@ -32,19 +32,27 @@ export const errorHandler = new Elysia({ name: 'error-handler' })
     logger.error('Error de base de datos al procesar la solicitud', {
       errorType: error.constructor.name,
       causeType: error.cause instanceof Error ? error.cause.constructor.name : undefined,
+      requestIdHash: Bun.CryptoHasher.hash('sha256', String(set.headers['x-request-id'] ?? ''), 'hex'),
     })
 
     return status(500, failure('INTERNAL_SERVER_ERROR', 'Ocurrió un error inesperado'))
   })
-  .error(ValidationError, ({ status }) =>
-    status(
+  .error(ValidationError, ({ error, status, set }) => {
+    if (error.status === 500) {
+      logger.error('La respuesta no cumple el contrato', {
+        ...errorDetails(error),
+        requestIdHash: Bun.CryptoHasher.hash('sha256', String(set.headers['x-request-id'] ?? ''), 'hex'),
+      })
+      return status(500, failure('INTERNAL_SERVER_ERROR', 'Ocurrió un error inesperado'))
+    }
+    return status(
       422,
       failure(
         'VALIDATION_ERROR',
         'La solicitud contiene datos inválidos'
       )
     )
-  )
+  })
   .error(NotFound, ({ status }) =>
     status(404, failure('ROUTE_NOT_FOUND', 'Ruta no encontrada'))
   )

@@ -78,6 +78,30 @@ describe('ip macro', () => {
 });
 
 describe('rateLimit macro', () => {
+  test('fails closed within a bounded time when Redis never replies', async () => {
+    env.APP_ENV = 'production';
+    spyOn(console, 'error').mockImplementation(() => undefined);
+    spyOn(redis, 'send').mockImplementation(() => new Promise(() => {}));
+    const handle = mock(() => 'ok');
+    const app = new Elysia().use(rateLimit).get('/', {
+      rateLimit: { max: 10, windowMs: 60_000, identifier: 'ip', namespace: 'timeout-test' },
+    }, handle);
+    const response = await app.handle(new Request('http://localhost/'));
+    expect(response.status).toBe(503);
+    expect(handle).not.toHaveBeenCalled();
+  }, 2_500);
+
+  test('does not use a user bucket without an authenticated identity', async () => {
+    env.APP_ENV = 'production';
+    const send = spyOn(redis, 'send');
+    const app = new Elysia().use(rateLimit).get('/', {
+      rateLimit: { max: 10, windowMs: 60_000, identifier: 'user', namespace: 'user-test' },
+    }, () => 'ok');
+    const response = await app.handle(new Request('http://localhost/'));
+    expect(response.status).toBe(401);
+    expect(send).not.toHaveBeenCalled();
+  });
+
   test('returns 429 with rate-limit headers', async () => {
     env.APP_ENV = 'production';
     spyOn(redis, 'send').mockResolvedValue([3, 9_500]);

@@ -14,8 +14,8 @@ if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 	throw new Error('El email no es válido')
 }
 
-if (password.length < 12) {
-	throw new Error('La contraseña debe tener al menos 12 caracteres')
+if (password.length < 12 || password.length > 128) {
+	throw new Error('La contraseña debe tener entre 12 y 128 caracteres')
 }
 
 if (password !== passwordConfirmation) {
