@@ -34,6 +34,13 @@ export abstract class TaskLogsService {
 
   static async create(userId: number, data: CreateTaskLogDTO) {
     const localDate = await getUserLocalDate(userId);
+    if (data.expectedDate !== undefined && data.expectedDate !== localDate) {
+      throw new ApiError(
+        409,
+        'El día cambió. Recarga la agenda antes de registrar actividad.',
+        'AGENDA_DATE_CHANGED',
+      );
+    }
 
     const log = await db.transaction(async (tx) => {
       const task = await requireOwnedTask(userId, data.taskId, tx);

@@ -51,9 +51,13 @@ export const AuthModel = {
   }),
 
   refresh: v.object({ refreshToken }),
-  refreshHeaders: v.object({
-    'idempotency-key': v.optional(v.string()),
-  }),
+  refreshHeaders: v.pipe(
+    v.object({
+      'idempotency-key': v.optional(v.string()),
+    }),
+    // The service returns 400 for a missing key; it is still required by the HTTP contract.
+    v.metadata({ required: ['idempotency-key'] }),
+  ),
   logout: v.object({ refreshToken }),
   pendingResponse: v.object({ status: v.literal('pending_approval') }),
   sessionResponse: v.object({

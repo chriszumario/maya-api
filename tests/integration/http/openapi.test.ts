@@ -79,7 +79,7 @@ describe('OpenAPI documentation', () => {
       },
     });
     expect(document.paths?.['/auth/refresh']?.post?.parameters).toContainEqual(
-      expect.objectContaining({ name: 'idempotency-key', in: 'header' }),
+      expect.objectContaining({ name: 'idempotency-key', in: 'header', required: true }),
     );
     expect(document.paths?.['/goals/{id}']?.get?.parameters).toContainEqual({
       name: 'id',
@@ -102,6 +102,16 @@ describe('OpenAPI documentation', () => {
         },
       },
     });
+    expect(document.paths?.['/task-logs/']?.post?.requestBody).toMatchObject({
+      content: {
+        'application/json': {
+          schema: {
+            required: ['taskId', 'status', 'durationMinutes'],
+            properties: { expectedDate: { type: 'string' } },
+          },
+        },
+      },
+    });
   });
 
   test('keeps protected routes protected after requesting the documentation', async () => {
@@ -111,6 +121,29 @@ describe('OpenAPI documentation', () => {
       expect(response.status).toBe(401);
       expect(await response.json()).toEqual({
         error: { code: 'UNAUTHORIZED', message: 'No autorizado' },
+      });
+    }
+  });
+
+  test('documents refresh failures and agenda conflicts with the actual error envelope', async () => {
+    const document = (await (await app.handle('/openapi/json')).json()) as OpenAPIV3_1.Document;
+    const failures = [
+      ...['400', '401', '422', '429', '503'].map(
+        (status) => document.paths?.['/auth/refresh']?.post?.responses?.[status],
+      ),
+      document.paths?.['/task-logs/']?.post?.responses?.['409'],
+      document.paths?.['/task-logs/{id}']?.patch?.responses?.['409'],
+    ];
+    for (const response of failures) {
+      expect(response).toMatchObject({
+        content: {
+          'application/json': {
+            schema: {
+              required: ['error'],
+              properties: { error: { required: ['code', 'message'] } },
+            },
+          },
+        },
       });
     }
   });

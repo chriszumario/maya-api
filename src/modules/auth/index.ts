@@ -2,7 +2,7 @@ import { Elysia } from 'elysia';
 import { AuthModel } from './auth.model';
 import { AuthService } from './auth.service';
 import { RefreshTokenService } from './refresh-token.service';
-import { ACCESS_TOKEN_EXP, authentication, rateLimit } from '@/lib';
+import { ACCESS_TOKEN_EXP, ApiFailureSchema, authentication, rateLimit } from '@/lib';
 const credentialRateLimit = {
   max: 10,
   windowMs: 15 * 60_000,
@@ -76,7 +76,14 @@ export const auth = new Elysia({
       },
       body: AuthModel.refresh,
       headers: AuthModel.refreshHeaders,
-      response: { 200: AuthModel.tokensResponse },
+      response: {
+        200: AuthModel.tokensResponse,
+        400: ApiFailureSchema,
+        401: ApiFailureSchema,
+        422: ApiFailureSchema,
+        429: ApiFailureSchema,
+        503: ApiFailureSchema,
+      },
       detail: {
         summary: 'Renovar tokens',
         security: [],

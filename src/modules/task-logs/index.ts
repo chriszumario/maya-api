@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
 import { TaskLogsModel } from './task-logs.model';
 import { TaskLogsService } from './task-logs.service';
-import { authentication } from '@/lib';
+import { ApiFailureSchema, authentication } from '@/lib';
 
 export const taskLogs = new Elysia({
   prefix: '/task-logs',
@@ -14,8 +14,13 @@ export const taskLogs = new Elysia({
     '/',
     {
       body: TaskLogsModel.create,
-      response: { 200: TaskLogsModel.response },
-      detail: { summary: 'Registrar ejecución', description: 'Upsert por (taskId, fecha).' },
+      response: { 200: TaskLogsModel.response, 409: ApiFailureSchema },
+      detail: {
+        summary: 'Registrar ejecución',
+        description:
+          'Upsert por (taskId, fecha local del usuario). Si expectedDate no coincide con esa fecha, ' +
+          'devuelve 409 AGENDA_DATE_CHANGED sin registrar actividad.',
+      },
     },
     ({ body, userId }) => TaskLogsService.create(userId, body),
   )
@@ -45,7 +50,7 @@ export const taskLogs = new Elysia({
     {
       params: TaskLogsModel.paramsId,
       body: TaskLogsModel.update,
-      response: { 200: TaskLogsModel.response },
+      response: { 200: TaskLogsModel.response, 409: ApiFailureSchema },
       detail: { summary: 'Actualizar log' },
     },
     ({ params, body, userId }) => TaskLogsService.update(userId, params.id, body),

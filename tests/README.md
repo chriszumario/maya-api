@@ -29,6 +29,9 @@ tests/
   estas pruebas fallan durante su inicialización.
 - En `bun test`, los escenarios de Redis bloqueado, rate limiting en producción y
   CORS usan dobles controlados. Esta suite no requiere servicios externos ni credenciales reales.
+- `integration/http/agenda-workflow.test.ts` recorre login, creación de meta y tarea,
+  cambio de zona horaria, registro de actividad y borrado en cascada mediante HTTP
+  y SQL real. Comprueba que una agenda abierta con la zona anterior no escriba actividad.
 
 ## Comandos
 

@@ -18,8 +18,6 @@
     "test:services": "bun --preload ./tests/setup.ts tests/services.ts",
     "test:build": "bun --preload ./tests/setup.ts tests/smoke-build.ts",
     "typecheck": "bun check",
-    "lint": "bun lint --no-script --max-warnings 0",
-    "lint:fix": "bun lint --no-script --max-warnings 0 --fix",
     "format": "bun fmt",
     "format:check": "bun fmt --check",
     "verify": "bun run typecheck && bun run lint && bun run format:check && bun run test && bun run db:check && bun run build && bun run test:build",
@@ -43,7 +41,7 @@
     "valibot": "^1.4.2"
   },
   "devDependencies": {
-    "@types/bun": "^1.4.3",
+    "@types/bun": "^1.4.4",
     "drizzle-kit": "1.0.0-rc.5"
   }
 }

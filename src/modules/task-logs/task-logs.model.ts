@@ -16,6 +16,7 @@ const response = v.object({
 export const TaskLogsModel = {
   create: v.object({
     taskId: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
+    expectedDate: v.optional(LocalDateSchema),
     status,
     durationMinutes,
   }),

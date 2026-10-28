@@ -108,6 +108,9 @@ Los esquemas se generan desde los modelos Valibot usados por las rutas mediante
 bundle AOT. Los parámetros se documentan antes de su conversión a números; las
 validaciones personalizadas y normalizaciones se siguen ejecutando en la API.
 El smoke test comprueba que el bundle expone el mismo documento que el código fuente.
+La renovación documenta `Idempotency-Key` como obligatorio y sus respuestas de error;
+la ausencia del header conserva el `400 INVALID_IDEMPOTENCY_KEY` del servicio.
+Los conflictos de creación y actualización de logs documentan su respuesta `409`.
 
 ## Verificación y producción
 
@@ -129,7 +132,7 @@ El smoke test comprueba que el bundle expone el mismo documento que el código f
 
 ### Lint y formato nativos de Bun
 
-Los scripts usan directamente los comandos nativos de Bun:
+Los scripts usan los comandos nativos de Bun:
 
 ```bash
 bun run lint
@@ -143,10 +146,12 @@ como dependencias. Lint rechaza también las advertencias y los tipos `any`
 explícitos. El formato usa dos espacios, comillas simples y punto y coma; excluye
 las migraciones generadas y los skills instalados. `format:check` comprueba sin modificar archivos.
 
-Se requiere una versión con `bun lint`, `bun fmt` y `bun check` nativos
-(comprobado con `1.4.4-canary.1+ea6a2c7b7`). Bun estable `1.4.3` no los ofrece.
-Los scripts no instalan ni actualizan Bun. Lint usa `--no-script` para invocar
-explícitamente el comando nativo y `--max-warnings 0` para rechazar advertencias.
+Se requiere un build con `bun lint`, `bun fmt` y `bun check` nativos.
+El build `1.4.4+38afee6c8` disponible en esta revisión ofrece `check` y `fmt`, pero no
+`lint`, aunque la documentación de Bun lo describe. `scripts/lint.ts` comprueba la
+disponibilidad y falla explícitamente, evitando invocar el propio script en bucle.
+Los scripts no instalan ni actualizan Bun. Cuando está disponible, lint usa
+`--no-script` y `--max-warnings 0` para rechazar advertencias.
 `typecheck` usa `bun check`, sin depender de un ejecutable `tsc` externo.
 
 `bunfig.toml` conserva solo las preferencias que difieren de los valores por
@@ -183,5 +188,3 @@ Consulta los [requisitos y escenarios](./tests/README.md#servicios-reales).
 
 GitHub Actions ejecuta instalación con lockfile congelado, `verify`, `bun audit`
 y pruebas de servicios con contenedores efímeros. Las acciones están fijadas por SHA.
-
-Consulta los hallazgos, alcance y riesgos pendientes en [AUDIT.md](./AUDIT.md).

@@ -676,6 +676,7 @@ type TaskLog = {
 
 type CreateTaskLogBody = {
   taskId: number;
+  expectedDate?: LocalDate; // fecha de la agenda mostrada; precondición, no fecha a insertar
   status: TaskLogStatus;
   durationMinutes: number; // entero, 0..1440
 };
@@ -696,9 +697,13 @@ programada para la fecha local actual. Las correcciones de logs históricos no d
 o calendario actual de la tarea. Los conflictos concurrentes responden `409 TASK_LOG_UPDATE_CONFLICT`.
 
 `durationMinutes` es el **total acumulado**, no un incremento. Al completar una tarea,
-envía su total final. Repetir el upsert del mismo día sustituye `status` y duración,
-pero repetirlo después de medianoche crea o modifica el día nuevo. No lo uses como
-una cola offline de actividad histórica. Los códigos `409 TASK_NOT_ACTIVE`,
+envía su total final y `expectedDate` con la fecha devuelta por `/today/tasks`.
+Si esa fecha ya no coincide con el día local del usuario, la API devuelve
+`409 AGENDA_DATE_CHANGED` sin escribir logs ni métricas. Recarga la agenda y reconcilia
+la actividad; no reintentes automáticamente cambiando la fecha.
+Repetir el upsert del mismo día sustituye `status` y duración. Por compatibilidad,
+`expectedDate` es opcional: omitirlo después de medianoche puede modificar el día nuevo.
+No lo uses como una cola offline de actividad histórica. Los códigos `409 TASK_NOT_ACTIVE`,
 `GOAL_NOT_IN_PROGRESS` y `TASK_NOT_SCHEDULED` indican que debes recargar la agenda.
 No hay endpoint de borrado de logs ni un estado `pending` persistido.
 
