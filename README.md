@@ -52,6 +52,18 @@ actual por decisión del proyecto. Está destinada a una base vacía; una base q
 tenga tablas requiere reconciliar su esquema e historial antes de ejecutar esta
 migración. La auditoría no ejecutó `db:migrate` ni `db:push` contra Turso.
 
+### Crear un usuario inicial
+
+```bash
+bun run db:seed
+```
+
+El script solicita nombre, email, contraseña y confirmación, y permite elegir si
+el usuario será administrador (no por defecto). Crea una cuenta activa con
+`APP_TIMEZONE` y las mismas validaciones que el registro de la API. Si el email ya
+existe, no modifica la cuenta. Ante errores o cancelación termina con código `1`.
+Ejecútalo en una terminal privada: `prompt` no oculta las contraseñas.
+
 ## Desarrollo
 
 ```bash
